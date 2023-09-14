@@ -1,24 +1,21 @@
-#!/bin/bash
-
-# ---------- Variables ----------
+#!/bin/bash -i
 
 flutter_repo="https://github.com/flutter/flutter"
 flutter_channel="stable"
-flutter_path="/opt"
+USER_HOME=$(eval echo ~${SUDO_USER})
+flutter_path="$USER_HOME/sdk"
 flutter_folder="$flutter_path/flutter"
 
 # List of dependency packages to install the flutter
 dep_packages=("curl" "git" "unzip" "xz-utils" "zip" "libglu1-mesa")
 
 # List of development packages to develop flutter app on linux
-dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma-dev" "libstdc++-12-dev")
-
-# ---------- Public Functions ----------
+dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma-dev")
 
 main(){
     # Check the number of command-line arguments
     if [ $# -eq 0 ]; then
-        echo "You need to specify an argument: \n\n"
+        echo "You need to specify an argument:"
         echo
         help
         exit 1
@@ -40,35 +37,25 @@ main(){
     fi
 }
 
-check_sudo() {
-    if [ "$EUID" -ne 0 ]; then
-        echo "This command must be run as root - use sudo"
-        exit
-    fi
-}
-
 doctor(){
-    echo "Doctor summary:"
-    echo
+    print_banner "Doctor summary:"
     
     # Check dependency packages (curl, git, unzip, ...)
-    echo " $(check_dep_packages && echo '✓' || echo '✘') | Dependency packages curl git unzip ... installed."
+    echo " $(check_dep_packages && echo '✓' || echo '✘') | Linux Dependency packages | curl git unzip ..."
     show_dep_packages_state
     # Check Flutter folder
     echo " $(check_flutter_folder && echo '✓' || echo '✘' ) | Flutter folder is located in $flutter_folder."
     # Check Flutter command
     echo " $(check_flutter_installed && echo '✓' || echo '✘') | Flutter command is available in the PATH."
     # Check Linux development packages (clang, cmake, ninja-build, ...)
-    echo " $(check_dev_packages && echo '✓' || echo '✘') | Linux development packages clang cmake ninja-build ... installed."
+    echo " $(check_dev_packages && echo '✓' || echo '✘') | Linux development packages | clang cmake ninja-build ..."
     show_dev_packages_state
     # Check Flutter channel
     echo " $(check_flutter_channel && echo '✓' || echo '✘') | Check flutter channel. should be $flutter_channel."
 }
 
 install() {
-    check_sudo
-    
-    echo "This installer made by SnappX company during the installation process we will complete the following tasks"
+    print_banner "Installation Summery"
     echo
     echo "
         * Get Linux dependencies to be able to run the flutter: curl, git ,...
@@ -85,7 +72,7 @@ install() {
 }
 
 uninstall() {
-    echo "Uninstalling Flutter..."
+    print_banner "Uninstalling Flutter..."
 }
 
 help(){
@@ -94,17 +81,46 @@ help(){
     echo
     echo "Options:"
     echo "  doctor     : Check all the steps"
-    echo "  install    : Install Flutter (add a description here)"
-    echo "  uninstall  : Uninstall Flutter (add a description here)"
+    echo "  install    : Install Flutter "
+    echo "  uninstall  : Uninstall Flutter "
     echo "  help       : Show this help message"
     echo
     exit 1
 }
 
 
-# ---------- Private Functions ----------
+print_banner() {
+    local message="${1:-Banner:}"
+    local width=40  # Adjust the width of the banner as needed
+    local border_char="*"
+    
+    # Calculate the padding length
+    local padding_length=$((($width - ${#message}) / 2))
+    
+    
+    # Create the middle part of the banner
+    local middle_banner=""
+    for ((i = 0; i < $padding_length; i++)); do
+        middle_banner+="$border_char"
+    done
+    middle_banner+=" $message "
+    for ((i = 0; i < $padding_length; i++)); do
+        middle_banner+="$border_char"
+    done
+    
+    # Create the top border
+    local border=""
+    for ((i = 0; i < (${#middle_banner}); i++)); do
+        border+="$border_char"
+    done
+    
+    # Print the banner
+    echo "$border"
+    echo "$middle_banner"
+    echo "$border"
+}
 
-# Function to check if all packages are installed
+
 check_dep_packages() {
     all_installed=0 # Success (true)
     
@@ -130,7 +146,6 @@ show_dep_packages_state(){
     return $all_installed
 }
 
-# Function to check if all development packages are installed
 check_dev_packages() {
     # List of packages to check
     
