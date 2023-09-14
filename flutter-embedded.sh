@@ -69,6 +69,78 @@ install() {
         * run flutter precache command for linux
     "
     echo
+    
+    print_banner "Flutter Linux Dependencies"
+    if ! check_dep_packages; then
+        install_packages "${dep_packages[@]}"
+    else
+        echo "Linux dependencies are already installed"
+        show_dep_packages_state
+    fi
+    echo
+    
+    print_banner "Clone Flutter"
+    if ! check_flutter_folder; then
+        echo "Clone the flutter from Github: $flutter_repo"
+        git clone $flutter_repo -b $flutter_channel
+        
+        sudo -E mv flutter $flutter_path/
+        echo "Flutter moved to the $flutter_path directory"
+    else
+        echo "Flutter folder is already available in $flutter_folder"
+    fi
+    echo
+    
+    
+    print_banner "Add Flutter to PATH"
+    if ! check_flutter_installed; then
+        add_flutter_to_path
+        eval "$(cat $USER_HOME/.bashrc | tail -n +10)"
+        export PATH="$PATH:$flutter_folder/bin"
+    fi
+    
+    echo
+    print_banner "Check Flutter Path"
+    echo
+    echo "Flutter is located at"
+    which flutter
+    echo
+    
+    
+    print_banner "Linux Development Dependencies"
+    if ! check_dev_packages; then
+        install_packages "${dev_packages[@]}"
+
+        sudo -E apt install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+    else
+        echo "Linux development dependencies are already installed"
+        show_dev_packages_state
+    fi
+    echo
+    
+    
+    print_banner "Check Flutter Channel"
+    echo "change Flutter channel to $flutter_channel"
+    if ! check_flutter_channel; then
+        flutter channel $flutter_channel
+    else
+        echo "Flutter channel is already on $flutter_channel"
+    fi
+    echo
+    
+    print_banner "Flutter Doctor"
+    flutter doctor -v
+    echo
+    
+    print_banner "Flutter Precache"
+    echo "run flutter precache command for linux"
+    flutter precache --universal --linux
+    echo
+    
+    echo "Flutter Linux GTK installed Successfully"
+    echo
+    print_banner "Final Checks:"
+    doctor
 }
 
 uninstall() {
@@ -173,6 +245,28 @@ show_dev_packages_state(){
     return $all_installed
 }
 
+# Function to install packages
+install_packages() {
+    local packages=("$@")
+    
+    # Check if the argument is an array
+    if [[ ! "$(declare -p packages 2>/dev/null)" =~ "declare -a" ]]; then
+        echo "Error: Argument is not an array."
+        return 1
+    fi
+    
+    if [ ${#packages[@]} -eq 0 ]; then
+        echo "No packages provided."
+        return 0
+    fi
+    
+    # Combine all package names into a single string
+    local package_list="${packages[*]}"
+    
+    # Install all packages in one command
+    sudo -E apt install -y $package_list
+}
+
 check_flutter_folder() {
     [ -e "$flutter_folder/bin/flutter" ]
     return $?
@@ -181,6 +275,35 @@ check_flutter_folder() {
 check_flutter_installed(){
     which flutter >/dev/null 2>&1
     return $?
+}
+
+check_flutter_in_path(){
+    if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$USER_HOME/.bashrc"; then
+        echo "Pattern found"
+    else
+        echo "Pattern not found"
+    fi
+    
+}
+
+add_flutter_to_path(){
+    if [ "$USER_HOME" != "$HOME_VAR" ]; then
+        if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$USER_HOME/.bashrc"; then
+            echo "we have flutter as env in ~/.bashrc."
+        else
+            echo "adding flutter to PATH as env in ~/.bashrc."
+            echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $USER_HOME/.bashrc
+            source $USER_HOME/.bashrc
+        fi
+    else
+        if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$HOME/.bashrc"; then
+            echo "we have flutter as env in ~/.bashrc."
+        else
+            echo "adding flutter to PATH as env in ~/.bashrc."
+            echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $HOME/.bashrc
+            source $HOME/.bashrc
+        fi
+    fi
 }
 
 check_flutter_channel() {
@@ -195,4 +318,4 @@ check_flutter_channel() {
     fi
 }
 
-main
+main "$@"
