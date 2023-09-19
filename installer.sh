@@ -1,15 +1,15 @@
-USER_HOME=$(eval echo ~${SUDO_USER})
-KIOSK_HOME=$USER_HOME/kiosk
+user_home=$(eval echo ~${SUDO_USER})
+embedded_home=$user_home/embedded
 
-# create a folder in user home /kiosk
-if [ ! -d "$KIOSK_HOME" ]; then
-    echo "Creating directory $KIOSK_HOME."
-    mkdir -p $KIOSK_HOME
+# create a folder in user home /embedded
+if [ ! -d "$embedded_home" ]; then
+    echo "Creating directory $embedded_home."
+    mkdir -p $embedded_home
 else
-    echo "The $KIOSK_HOME directory is already available."
+    echo "The $embedded_home directory is already available."
 fi
 
-cd $KIOSK_HOME
+cd $embedded_home
 
 sudo curl -o flutter-embedded.sh https://raw.githubusercontent.com/Snapp-X/flutter-raspberry-pi/main/flutter-embedded.sh
 sudo curl -o kiosk.sh https://raw.githubusercontent.com/Snapp-X/flutter-raspberry-pi/main/kiosk.sh

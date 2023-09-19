@@ -1,10 +1,13 @@
 #!/bin/bash -i
 
+user_home=$(eval echo ~${SUDO_USER})
 flutter_repo="https://github.com/flutter/flutter"
 flutter_channel="stable"
-USER_HOME=$(eval echo ~${SUDO_USER})
-flutter_path="$USER_HOME/sdk"
+flutter_path="$user_home/sdk"
 flutter_folder="$flutter_path/flutter"
+kiosk_home=$user_home/kiosk
+embedded_home=$user_home/embedded
+
 
 # List of dependency packages to install the flutter
 dep_packages=("curl" "git" "unzip" "xz-utils" "zip" "libglu1-mesa")
@@ -26,6 +29,8 @@ main(){
         install
         elif [ "$1" == "uninstall" ]; then
         uninstall
+        elif [ "$1" == "kiosk" ]; then
+        kiosk "$2"
         elif [ "$1" == "doctor" ]; then
         doctor
         elif [ "$1" == "help" ]; then
@@ -95,7 +100,7 @@ install() {
     print_banner "Add Flutter to PATH"
     if ! check_flutter_installed; then
         add_flutter_to_path
-        eval "$(cat $USER_HOME/.bashrc | tail -n +10)"
+        eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
     fi
     
@@ -110,7 +115,7 @@ install() {
     print_banner "Linux Development Dependencies"
     if ! check_dev_packages; then
         install_packages "${dev_packages[@]}"
-
+        
         sudo -E apt install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
     else
         echo "Linux development dependencies are already installed"
@@ -144,7 +149,79 @@ install() {
 }
 
 uninstall() {
-    print_banner "Uninstalling Flutter..."
+    print_banner "Uninstalling Flutter not implemented yet"
+}
+
+kiosk(){
+    if [ -z "$1" ]; then
+        echo "
+No path parameter provided.
+
+Usage: kiosk <file_path>
+to run the app bundle in kiosk mode you need to provide the exact path to the flutter app bundle
+Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
+        "
+        echo
+        return 1
+    fi
+    
+    local app_path="$1"
+    
+    # Check if the provided path exists
+    if [ ! -e "$app_path" ]; then
+        echo "File or directory does not exist: $app_path"
+        return 1
+    fi
+    
+    # Check if the provided path is a regular file (not a directory)
+    if [ ! -f "$app_path" ]; then
+        echo "Not a regular file: $app_path"
+        return 1
+    fi
+    
+    # Check if the file is executable
+    if [ -x "$app_path" ]; then
+        echo "File is executable: $app_path"
+    else
+        echo "File is not executable: $app_path"
+        return 1
+    fi
+    
+    print_banner "Run app bundle in kiosk mode"
+    
+    
+    # check $kiosk_home is available or not
+    if [ ! -d "$kiosk_home" ]; then
+        echo "Creating directory $kiosk_home."
+        mkdir -p $kiosk_home
+        echo
+    else
+        echo "The $kiosk_home directory is already available."
+        echo
+    fi
+    
+    
+    local kiosk_file="$kiosk_home/kiosk.sh"
+    
+    # check if kiosk.sh file is available or not
+    if [ -f "$kiosk_file" ]; then
+        echo "remove current $kiosk_file file and create a new one."
+        sudo -E rm $kiosk_file
+        echo
+    fi
+    
+    echo "Creating file $kiosk_file. from template"
+    sudo -E cp $embedded_home/kiosk.sh $kiosk_home/
+    echo
+    
+    echo "Add $app_path to $kiosk_file file"
+    echo "$app_path" | sudo tee -a "$kiosk_file"
+    echo
+    
+    echo "Add kiosk.sh runner to autostart file"
+    echo "@bash $kiosk_file &" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
+    echo
+    
 }
 
 help(){
@@ -278,7 +355,7 @@ check_flutter_installed(){
 }
 
 check_flutter_in_path(){
-    if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$USER_HOME/.bashrc"; then
+    if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
         echo "Pattern found"
     else
         echo "Pattern not found"
@@ -287,13 +364,13 @@ check_flutter_in_path(){
 }
 
 add_flutter_to_path(){
-    if [ "$USER_HOME" != "$HOME_VAR" ]; then
-        if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$USER_HOME/.bashrc"; then
+    if [ "$user_home" != "$HOME_VAR" ]; then
+        if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
             echo "we have flutter as env in ~/.bashrc."
         else
             echo "adding flutter to PATH as env in ~/.bashrc."
-            echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $USER_HOME/.bashrc
-            source $USER_HOME/.bashrc
+            echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $user_home/.bashrc
+            source $user_home/.bashrc
         fi
     else
         if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$HOME/.bashrc"; then
