@@ -33,7 +33,7 @@ main(){
         kiosk "$2"
         elif [ "$1" == "doctor" ]; then
         doctor
-        elif [ "$1" == "help" ]; then
+        elif [ "$1" == "help" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
         help
     else
         echo "Invalid argument: $1"
@@ -41,6 +41,22 @@ main(){
         exit 1
     fi
 }
+
+
+help(){
+    echo
+    echo "Usage: $0 {help|doctor|install|uninstall|kiosk}"
+    echo
+    echo "Options:"
+    echo "  help       : Show this help message"
+    echo "  doctor     : Check all the steps"
+    echo "  install    : Install Flutter "
+    echo "  uninstall  : Uninstall Flutter "
+    echo "  kiosk      : Run the app bundle in kiosk mode"
+    echo
+    exit 1
+}
+
 
 doctor(){
     print_banner "Doctor summary:"
@@ -221,20 +237,6 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     echo "Add kiosk.sh runner to autostart file"
     echo "@bash $kiosk_file &" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
     echo
-    
-}
-
-help(){
-    echo
-    echo "Usage: $0 {doctor|install|uninstall|help}"
-    echo
-    echo "Options:"
-    echo "  doctor     : Check all the steps"
-    echo "  install    : Install Flutter "
-    echo "  uninstall  : Uninstall Flutter "
-    echo "  help       : Show this help message"
-    echo
-    exit 1
 }
 
 
