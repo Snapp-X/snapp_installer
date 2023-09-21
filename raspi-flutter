@@ -43,7 +43,7 @@ main(){
         elif [ "$1" == "kiosk" ]; then
         kiosk "$2"
         elif [ "$1" == "disable_kiosk" ]; then
-        disable_kiosk 
+        disable_kiosk
         elif [ "$1" == "autologin" ]; then
         enable_autologin
         elif [ "$1" == "disable_autologin" ]; then
@@ -115,6 +115,8 @@ install() {
     "
     echo
     
+    set -e
+
     print_banner "Flutter Linux Dependencies"
     if ! check_dep_packages; then
         install_packages "${dep_packages[@]}"
@@ -129,7 +131,11 @@ install() {
         echo "Clone the flutter from Github: $flutter_repo"
         git clone $flutter_repo -b $flutter_channel
         
-        sudo -E mv flutter $flutter_folder
+        if [ ! -d "$flutter_path" ]; then
+            mkdir -p "$flutter_path"
+        fi
+        
+        sudo -E mv flutter $flutter_path
         echo "Flutter moved to the $flutter_path directory"
     else
         echo "Flutter folder is already available in $flutter_folder"
@@ -143,7 +149,7 @@ install() {
         eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
     fi
-
+    
     if ! check_flutter_installed; then
         echo "Add Flutter to PATH for this session"
         eval "$(cat $user_home/.bashrc | tail -n +10)"
