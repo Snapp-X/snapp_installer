@@ -7,7 +7,7 @@ flutter_channel="stable"
 flutter_path="$user_home/sdk"
 flutter_folder="$flutter_path/flutter"
 
-embedded_home=$user_home/embedded
+raspi_home=$user_home/raspi-flutter/bin
 kiosk_home=$user_home/kiosk
 
 default_autostart="/etc/xdg/lxsession/LXDE-pi/autostart"
@@ -144,7 +144,7 @@ install() {
     echo
     print_banner "Check Flutter Path"
     echo
-    echo "Flutter is located at"
+    echo "Flutter is located at:"
     which flutter
     echo
     
@@ -189,24 +189,6 @@ uninstall() {
     print_banner "Uninstalling Flutter not implemented yet"
 }
 
-enable_autologin() {
-    
-    print_banner "Enable Autologin"
-    sudo -E raspi-config nonint do_boot_behaviour B4
-    
-    echo "Auto Login enabled successfully"
-}
-
-disable_autologin() {
-    print_banner "Disable Autologin"
-    sudo -E raspi-config nonint do_boot_behaviour B3
-    echo "Auto Login disabled successfully"
-}
-
-check_autologin() {
-    return $(sudo -E raspi-config nonint get_autologin)
-}
-
 kiosk(){
     if [ -z "$1" ]; then
         echo "
@@ -215,6 +197,10 @@ No path parameter provided.
 Usage: kiosk <file_path>
 to run the app bundle in kiosk mode you need to provide the exact path to the flutter app bundle
 Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
+
+you can generate your file with the following command:
+
+flutter build linux --release
         "
         echo
         return 1
@@ -275,7 +261,7 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     fi
     
     echo "Creating file $kiosk_file. from template"
-    sudo -E cp $embedded_home/kiosk.sh $kiosk_home/
+    sudo -E cp $raspi_home/kiosk.sh $kiosk_home/
     echo
     
     echo "Add Application path to $kiosk_file file"
@@ -340,6 +326,23 @@ check_kiosk() {
     return 1
 }
 
+enable_autologin() {
+    
+    print_banner "Enable Autologin"
+    sudo -E raspi-config nonint do_boot_behaviour B4
+    
+    echo "Auto Login enabled successfully"
+}
+
+disable_autologin() {
+    print_banner "Disable Autologin"
+    sudo -E raspi-config nonint do_boot_behaviour B3
+    echo "Auto Login disabled successfully"
+}
+
+check_autologin() {
+    return $(sudo -E raspi-config nonint get_autologin)
+}
 
 print_banner() {
     local message="${1:-Banner:}"

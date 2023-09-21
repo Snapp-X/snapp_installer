@@ -1,15 +1,15 @@
 user_home=$(eval echo ~${SUDO_USER})
-embedded_home=$user_home/embedded
+raspi_home=$user_home/raspi-flutter/bin
 
 # create a folder in user home /embedded
-if [ ! -d "$embedded_home" ]; then
-    echo "Creating directory $embedded_home."
-    mkdir -p $embedded_home
+if [ ! -d "$raspi_home" ]; then
+    echo "Creating directory $raspi_home."
+    mkdir -p $raspi_home
 else
-    echo "The $embedded_home directory is already available."
+    echo "The $raspi_home directory is already available."
 fi
 
-cd $embedded_home
+cd $raspi_home
 
 sudo curl -o flutter-embedded.sh https://raw.githubusercontent.com/Snapp-X/flutter-raspberry-pi/main/flutter-embedded.sh
 sudo curl -o kiosk.sh https://raw.githubusercontent.com/Snapp-X/flutter-raspberry-pi/main/kiosk.sh
