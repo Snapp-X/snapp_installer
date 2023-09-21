@@ -168,6 +168,16 @@ uninstall() {
     print_banner "Uninstalling Flutter not implemented yet"
 }
 
+enable_auto_login() {
+    echo
+}
+disable_auto_login() {
+    echo
+}
+check_auto_login() {
+    echo
+}
+
 kiosk(){
     if [ -z "$1" ]; then
         echo "
@@ -197,14 +207,15 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     
     # Check if the file is executable
     if [ -x "$app_path" ]; then
-        echo "File is executable: $app_path"
+        echo "Provided File is a valid executable: $app_path"
     else
         echo "File is not executable: $app_path"
         return 1
     fi
     
     print_banner "Run app bundle in kiosk mode"
-    
+
+    # TODO: add kiosk dependencies like xset and xdotool
     
     # check $kiosk_home is available or not
     if [ ! -d "$kiosk_home" ]; then
@@ -230,12 +241,38 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     sudo -E cp $embedded_home/kiosk.sh $kiosk_home/
     echo
     
-    echo "Add $app_path to $kiosk_file file"
-    echo "$app_path" | sudo tee -a "$kiosk_file"
+    echo "Add Application path to $kiosk_file file"
+    # sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g')\&/g" "$kiosk_file"
+    sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g') \&/g" "$kiosk_file"
     echo
+
+    local default_autostart="/etc/xdg/lxsession/LXDE-pi/autostart"
+    local user_autostart_dir="$user_home/.config/lxsession/LXDE-pi/"
+    local user_autostart="$user_home/.config/lxsession/LXDE-pi/autostart"
     
-    echo "Add kiosk.sh runner to autostart file"
-    echo "@bash $kiosk_file &" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
+    if [ ! -d "$user_autostart_dir" ]; then
+        echo "Creating directory $user_autostart_dir."
+        sudo -E mkdir -p $user_autostart_dir
+        echo
+    else
+        echo "The $user_autostart_dir directory is already available."
+        echo
+    fi
+    
+    if [ -f "$user_autostart" ]; then
+        echo "remove current $user_autostart file and create a new one."
+        sudo -E rm $user_autostart
+        echo
+    fi
+    
+    echo "Copy default autostart file to user autostart file"
+    sudo -E cp $default_autostart $user_autostart_dir
+    
+    echo "Add following lines to the to user autostart file"
+    echo "@bash $kiosk_file" | sudo tee -a $user_autostart
+    echo "@sleep 5" | sudo tee -a $user_autostart
+    echo "@xdotool key alt+F11" | sudo tee -a $user_autostart
+    
     echo
 }
 
