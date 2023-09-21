@@ -42,6 +42,8 @@ main(){
         uninstall
         elif [ "$1" == "kiosk" ]; then
         kiosk "$2"
+        elif [ "$1" == "disable_kiosk" ]; then
+        disable_kiosk 
         elif [ "$1" == "autologin" ]; then
         enable_autologin
         elif [ "$1" == "disable_autologin" ]; then
@@ -186,7 +188,7 @@ install() {
 }
 
 uninstall() {
-    print_banner "Uninstalling Flutter not implemented yet"
+    print_banner "Uninstalling Flutter is not implemented yet"
 }
 
 kiosk(){
