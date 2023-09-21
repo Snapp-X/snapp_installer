@@ -472,7 +472,7 @@ check_flutter_in_path(){
 }
 
 add_flutter_to_path(){
-    if [ "$user_home" != "$HOME_VAR" ]; then
+    if [ "$user_home" != "$HOME" ]; then
         if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
             echo "we have flutter as env in ~/.bashrc."
         else
