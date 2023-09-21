@@ -295,7 +295,19 @@ disable_kiosk() {
     else
         echo "Kiosk mode is already disabled"
     fi
+}
+
+check_kiosk() {
+    local kiosk_file="$kiosk_home/kiosk.sh"
     
+    if [ -f "$user_autostart" ]; then
+        # Check if the line exists in the file
+        if grep -qF "@bash $kiosk_file" "$user_autostart"; then
+            return 0
+        fi
+    fi
+    
+    return 1
 }
 
 
