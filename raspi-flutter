@@ -83,6 +83,7 @@ doctor(){
     # Check Flutter folder
     echo " $(check_flutter_folder && echo '✓' || echo '✘' ) | Flutter folder is located in $flutter_folder."
     # Check Flutter command
+    echo " $(check_flutter_in_path && echo '✓' || echo '✘') | Flutter command is defined in .bashrc file."
     echo " $(check_flutter_installed && echo '✓' || echo '✘') | Flutter command is available in the PATH."
     # Check Linux development packages (clang, cmake, ninja-build, ...)
     echo " $(check_dev_packages && echo '✓' || echo '✘') | Linux development packages | clang cmake ninja-build ..."
@@ -137,8 +138,13 @@ install() {
     
     
     print_banner "Add Flutter to PATH"
-    if ! check_flutter_installed; then
+    if ! check_flutter_in_path; then
         add_flutter_to_path
+        eval "$(cat $user_home/.bashrc | tail -n +10)"
+        export PATH="$PATH:$flutter_folder/bin"
+    fi
+
+    if ! check_flutter_installed; then
         eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
     fi
@@ -464,9 +470,9 @@ check_flutter_installed(){
 
 check_flutter_in_path(){
     if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
-        echo "Pattern found"
+        echo 0
     else
-        echo "Pattern not found"
+        echo 1
     fi
     
 }

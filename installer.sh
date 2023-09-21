@@ -58,7 +58,6 @@ add_raspi_to_path(){
         echo "adding raspi-flutter to PATH as env in ~/.bashrc."
         echo "export PATH=\"\$PATH:$raspi_home\"" >> $user_home/.bashrc
         source $user_home/.bashrc
-        eval "$(cat $user_home/.bashrc | tail -n +10)"
     fi
 }
 
