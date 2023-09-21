@@ -1,12 +1,18 @@
 #!/bin/bash -i
 
 user_home=$(eval echo ~${SUDO_USER})
+
 flutter_repo="https://github.com/flutter/flutter"
 flutter_channel="stable"
 flutter_path="$user_home/sdk"
 flutter_folder="$flutter_path/flutter"
-kiosk_home=$user_home/kiosk
+
 embedded_home=$user_home/embedded
+kiosk_home=$user_home/kiosk
+
+default_autostart="/etc/xdg/lxsession/LXDE-pi/autostart"
+user_autostart_dir="$user_home/.config/lxsession/LXDE-pi/"
+user_autostart="$user_home/.config/lxsession/LXDE-pi/autostart"
 
 
 # List of dependency packages to install the flutter
@@ -31,6 +37,8 @@ main(){
         uninstall
         elif [ "$1" == "kiosk" ]; then
         kiosk "$2"
+        elif [ "$1" == "disable_kiosk" ]; then
+        disable_kiosk
         elif [ "$1" == "doctor" ]; then
         doctor
         elif [ "$1" == "help" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
@@ -42,21 +50,20 @@ main(){
     fi
 }
 
-
 help(){
     echo
-    echo "Usage: $0 {help|doctor|install|uninstall|kiosk}"
+    echo "Usage: $0 <command>"
     echo
     echo "Options:"
-    echo "  help       : Show this help message"
-    echo "  doctor     : Check all the steps"
-    echo "  install    : Install Flutter "
-    echo "  uninstall  : Uninstall Flutter "
-    echo "  kiosk      : Run the app bundle in kiosk mode"
+    echo "  help           : Show this help message"
+    echo "  doctor         : Check all the steps"
+    echo "  install        : Install Flutter "
+    echo "  uninstall      : Uninstall Flutter "
+    echo "  kiosk          : Run the app bundle in kiosk mode"
+    echo "  disable_kiosk  : Disable the kiosk mode"
     echo
     exit 1
 }
-
 
 doctor(){
     print_banner "Doctor summary:"
@@ -213,8 +220,8 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
         return 1
     fi
     
-    print_banner "Run app bundle in kiosk mode"
-
+    print_banner "Enable kiosk mode"
+    
     # TODO: add kiosk dependencies like xset and xdotool
     
     # check $kiosk_home is available or not
@@ -245,10 +252,6 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     # sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g')\&/g" "$kiosk_file"
     sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g') \&/g" "$kiosk_file"
     echo
-
-    local default_autostart="/etc/xdg/lxsession/LXDE-pi/autostart"
-    local user_autostart_dir="$user_home/.config/lxsession/LXDE-pi/"
-    local user_autostart="$user_home/.config/lxsession/LXDE-pi/autostart"
     
     if [ ! -d "$user_autostart_dir" ]; then
         echo "Creating directory $user_autostart_dir."
@@ -260,7 +263,7 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     fi
     
     if [ -f "$user_autostart" ]; then
-        echo "remove current $user_autostart file and create a new one."
+        echo "remove current $user_autostart file."
         sudo -E rm $user_autostart
         echo
     fi
@@ -274,6 +277,25 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     echo "@xdotool key alt+F11" | sudo tee -a $user_autostart
     
     echo
+}
+
+disable_kiosk() {
+    echo
+    print_banner "Disable kiosk mode"
+    
+    
+    if [ -f "$user_autostart" ]; then
+        echo "remove current $user_autostart file"
+        sudo -E rm $user_autostart
+        echo
+        echo "Kiosk mode has been disabled"
+        echo
+        sleep 3
+        sudo -E reboot
+    else
+        echo "Kiosk mode is already disabled"
+    fi
+    
 }
 
 
