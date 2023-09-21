@@ -21,6 +21,10 @@ dep_packages=("curl" "git" "unzip" "xz-utils" "zip" "libglu1-mesa")
 # List of development packages to develop flutter app on linux
 dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma-dev")
 
+# TODO: add unclutter if needed
+# List of dependency packages for the kiosk mode
+kiosk_packages=("xset" "xdotool")
+
 main(){
     # Check the number of command-line arguments
     if [ $# -eq 0 ]; then
@@ -75,7 +79,7 @@ help(){
 doctor(){
     print_banner "Doctor summary:"
     echo
-    echo "installation: "
+    echo "Installation: "
     echo
     # Check dependency packages (curl, git, unzip, ...)
     echo " $(check_dep_packages && echo '✓' || echo '✘') | Linux Dependency packages | curl git unzip ..."
@@ -97,26 +101,28 @@ doctor(){
     echo
     echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
     echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
+    echo " $(check_kiosk_packages && echo '✓' || echo '✘') | Kiosk mode packages | xset xdotool ..."
+    show_kiosk_packages_state
 }
 
 install() {
     print_banner "Installation Summary"
     echo
     echo "
-        * Get Linux dependencies to be able to run the flutter: curl, git ,...
-        * Clone the flutter from Github: $flutter_repo
-        * move flutter to the $flutter_folder directory
-        * update the path to make the flutter command excutable
-        * Check and show the flutter path
-        * add dependencies for developing on linux
-        * change flutter channel to $flutter_channel
-        * run flutter doctor
-        * run flutter precache command for linux
+* Get Linux dependencies to be able to run the flutter: curl, git ,...
+* Clone the flutter from Github: $flutter_repo
+* move flutter to the $flutter_folder directory
+* update the path to make the flutter command excutable
+* Check and show the flutter path
+* add dependencies for developing on linux
+* change flutter channel to $flutter_channel
+* run flutter doctor
+* run flutter precache command for linux
     "
     echo
     
     set -e
-
+    
     print_banner "Flutter Linux Dependencies"
     if ! check_dep_packages; then
         install_packages "${dep_packages[@]}"
@@ -167,8 +173,6 @@ install() {
     print_banner "Linux Development Dependencies"
     if ! check_dev_packages; then
         install_packages "${dev_packages[@]}"
-        
-        sudo -E apt install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
     else
         echo "Linux development dependencies are already installed"
         show_dev_packages_state
@@ -253,7 +257,14 @@ flutter build linux --release
     
     print_banner "Enable kiosk mode"
     
-    # TODO: add kiosk dependencies like xset and xdotool
+    if ! check_kiosk_packages; then
+        echo "Install kiosk packages"
+        install_packages "${kiosk_packages[@]}"
+    else
+        echo "Linux development dependencies are already installed"
+        show_kiosk_packages_state
+    fi
+    echo
     
     # check $kiosk_home is available or not
     if [ ! -d "$kiosk_home" ]; then
@@ -280,7 +291,6 @@ flutter build linux --release
     echo
     
     echo "Add Application path to $kiosk_file file"
-    # sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g')\&/g" "$kiosk_file"
     sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g') \&/g" "$kiosk_file"
     echo
     
@@ -433,6 +443,32 @@ check_dev_packages() {
 
 show_dev_packages_state(){
     for package in "${dev_packages[@]}"; do
+        if ! dpkg -l | grep -q "ii  $package"; then
+            echo "    * ✘ $package is missing"
+        else
+            echo "    * ✓ $package is installed"
+        fi
+    done
+    
+    return $all_installed
+}
+
+check_kiosk_packages() {
+    
+    all_installed=0 # Success (true)
+    
+    for package in "${kiosk_packages[@]}"; do
+        if ! dpkg -l | grep -q "ii  $package"; then
+            all_installed=1 # Failure (false)
+            break  # No need to check further once one package is not installed
+        fi
+    done
+    
+    return $all_installed
+}
+
+show_kiosk_packages_state(){
+    for package in "${kiosk_packages[@]}"; do
         if ! dpkg -l | grep -q "ii  $package"; then
             echo "    * ✘ $package is missing"
         else
