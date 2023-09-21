@@ -68,6 +68,7 @@ help(){
 doctor(){
     print_banner "Doctor summary:"
     
+    echo "installation: "
     # Check dependency packages (curl, git, unzip, ...)
     echo " $(check_dep_packages && echo '✓' || echo '✘') | Linux Dependency packages | curl git unzip ..."
     show_dep_packages_state
@@ -80,6 +81,12 @@ doctor(){
     show_dev_packages_state
     # Check Flutter channel
     echo " $(check_flutter_channel && echo '✓' || echo '✘') | Check flutter channel. should be $flutter_channel."
+    
+    
+    echo 
+    echo "Kiosk Mode: "
+    echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
+    echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
 }
 
 install() {
@@ -175,14 +182,9 @@ uninstall() {
     print_banner "Uninstalling Flutter not implemented yet"
 }
 
-enable_auto_login() {
-    echo
-}
-disable_auto_login() {
-    echo
-}
-check_auto_login() {
-    echo
+
+check_autologin() {
+    return $(sudo -E raspi-config nonint get_autologin)
 }
 
 kiosk(){
