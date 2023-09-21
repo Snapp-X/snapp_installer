@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 user_home=$(eval echo ~${SUDO_USER})
 raspi_home=$user_home/raspi-flutter/bin
 
