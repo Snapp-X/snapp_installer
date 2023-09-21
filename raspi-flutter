@@ -23,7 +23,7 @@ dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma
 
 # TODO: add unclutter if needed
 # List of dependency packages for the kiosk mode
-kiosk_packages=("xset" "xdotool")
+kiosk_packages=("x11-xserver-utils" "xdotool")
 
 main(){
     # Check the number of command-line arguments
@@ -224,6 +224,8 @@ flutter build linux --release
         echo
         return 1
     fi
+
+    set -e
     
     local app_path="$1"
     
