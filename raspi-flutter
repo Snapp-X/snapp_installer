@@ -129,7 +129,7 @@ install() {
         echo "Clone the flutter from Github: $flutter_repo"
         git clone $flutter_repo -b $flutter_channel
         
-        sudo -E mv flutter $flutter_path/
+        sudo -E mv flutter $flutter_folder
         echo "Flutter moved to the $flutter_path directory"
     else
         echo "Flutter folder is already available in $flutter_folder"
@@ -145,6 +145,7 @@ install() {
     fi
 
     if ! check_flutter_installed; then
+        echo "Add Flutter to PATH for this session"
         eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
     fi
@@ -481,13 +482,13 @@ add_flutter_to_path(){
         if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
             echo "we have flutter as env in ~/.bashrc."
         else
-            echo "adding flutter to PATH as env in ~/.bashrc."
+            echo "adding flutter to PATH as env in $user_home/.bashrc."
             echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $user_home/.bashrc
             source $user_home/.bashrc
         fi
     else
         if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$HOME/.bashrc"; then
-            echo "we have flutter as env in ~/.bashrc."
+            echo "we have flutter as env in $HOME/.bashrc."
         else
             echo "adding flutter to PATH as env in ~/.bashrc."
             echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $HOME/.bashrc
