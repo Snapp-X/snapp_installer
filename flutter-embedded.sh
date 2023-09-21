@@ -24,25 +24,28 @@ dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma
 main(){
     # Check the number of command-line arguments
     if [ $# -eq 0 ]; then
-        echo "You need to specify an argument:"
+        echo
+        echo "You need to specify a Command:"
         echo
         help
         exit 1
     fi
     
     # Check for the command-line argument
-    if [ "$1" == "install" ]; then
+    if [ "$1" == "help" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+        help
+        elif [ "$1" == "doctor" ]; then
+        doctor
+        elif [ "$1" == "install" ]; then
         install
         elif [ "$1" == "uninstall" ]; then
         uninstall
         elif [ "$1" == "kiosk" ]; then
         kiosk "$2"
-        elif [ "$1" == "disable_kiosk" ]; then
-        disable_kiosk
-        elif [ "$1" == "doctor" ]; then
-        doctor
-        elif [ "$1" == "help" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
-        help
+        elif [ "$1" == "autologin" ]; then
+        enable_autologin
+        elif [ "$1" == "disable_autologin" ]; then
+        disable_autologin
     else
         echo "Invalid argument: $1"
         help
@@ -55,20 +58,23 @@ help(){
     echo "Usage: $0 <command>"
     echo
     echo "Options:"
-    echo "  help           : Show this help message"
-    echo "  doctor         : Check all the steps"
-    echo "  install        : Install Flutter "
-    echo "  uninstall      : Uninstall Flutter "
-    echo "  kiosk          : Run the app bundle in kiosk mode"
-    echo "  disable_kiosk  : Disable the kiosk mode"
+    echo "  help               : Show this help message"
+    echo "  doctor             : Check all the steps"
+    echo "  install            : Install Flutter "
+    echo "  uninstall          : Uninstall Flutter "
+    echo "  kiosk              : Run the app bundle in kiosk mode"
+    echo "  disable_kiosk      : Disable the kiosk mode"
+    echo "  autologin          : Enable the auto login"
+    echo "  disable_autologin  : Disable the auto login"
     echo
     exit 1
 }
 
 doctor(){
     print_banner "Doctor summary:"
-    
+    echo
     echo "installation: "
+    echo
     # Check dependency packages (curl, git, unzip, ...)
     echo " $(check_dep_packages && echo '✓' || echo '✘') | Linux Dependency packages | curl git unzip ..."
     show_dep_packages_state
@@ -83,8 +89,9 @@ doctor(){
     echo " $(check_flutter_channel && echo '✓' || echo '✘') | Check flutter channel. should be $flutter_channel."
     
     
-    echo 
+    echo
     echo "Kiosk Mode: "
+    echo
     echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
     echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
 }
@@ -182,6 +189,19 @@ uninstall() {
     print_banner "Uninstalling Flutter not implemented yet"
 }
 
+enable_autologin() {
+    
+    print_banner "Enable Autologin"
+    sudo -E raspi-config nonint do_boot_behaviour B4
+    
+    echo "Auto Login enabled successfully"
+}
+
+disable_autologin() {
+    print_banner "Disable Autologin"
+    sudo -E raspi-config nonint do_boot_behaviour B3
+    echo "Auto Login disabled successfully"
+}
 
 check_autologin() {
     return $(sudo -E raspi-config nonint get_autologin)
@@ -220,6 +240,14 @@ Example: kiosk /home/pi/app/build/linux/arm64/release/bundle/app
     else
         echo "File is not executable: $app_path"
         return 1
+    fi
+    
+    
+    if ! check_autologin; then
+        echo "Autologin is disabled we have to enable it."
+        enable_autologin
+    else
+        echo "Autologin is already enabled"
     fi
     
     print_banner "Enable kiosk mode"
