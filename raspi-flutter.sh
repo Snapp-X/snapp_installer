@@ -97,7 +97,7 @@ doctor(){
 }
 
 install() {
-    print_banner "Installation Summery"
+    print_banner "Installation Summary"
     echo
     echo "
         * Get Linux dependencies to be able to run the flutter: curl, git ,...
