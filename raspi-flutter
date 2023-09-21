@@ -470,11 +470,10 @@ check_flutter_installed(){
 
 check_flutter_in_path(){
     if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
-        echo 0
+        return 0
     else
-        echo 1
+        return 1
     fi
-    
 }
 
 add_flutter_to_path(){
