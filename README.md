@@ -85,9 +85,9 @@ raspi-flutter kiosk /home/pi/app/build/linux/arm64/release/bundle/app
 Ensure that the specified file path exists, points to an executable file, and is the path to your Flutter app bundle.
 
 **Auto Login**: 
-Kiosk mode typically requires auto login on your Raspberry Pi. If auto login is not already enabled, raspi-flutter will enabled for you.
+Kiosk mode typically requires auto login on your Raspberry Pi. If auto login is not already enabled, raspi-flutter will enable it for you.
 
-You can also enable auto login manually, by using the following command:
+You can also enable the auto login manually, by using the following command:
 
 ```bash
 raspi-flutter autologin
