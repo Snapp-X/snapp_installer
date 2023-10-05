@@ -1,5 +1,8 @@
 # raspi-flutter: Raspberry Pi Flutter Development Toolkit
 
+<p align="left">
+<img src="assets\background.png?raw=true" width="100%" alt="raspi-flutter" />
+</p>
 
 **raspi-flutter** is a command-line tool that simplifies the installation and development of Flutter applications on your Raspberry Pi. This Bash script automates the process of setting up the Flutter environment, installs essential files and dependencies, and offers additional features like running your Flutter apps in **kiosk** mode.
 
