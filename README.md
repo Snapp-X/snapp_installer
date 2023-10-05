@@ -17,6 +17,10 @@ Before running the installer script, ensure you have the following prerequisites
 - **Bash shell** (version 4.0 or higher) - by default is available
 - **Curl** - by default is available
 
+## Kiosk Mode Result
+https://github.com/Snapp-X/raspi-flutter/assets/47558577/f580b1e8-e295-453a-8894-e03f2d9d67fc
+
+
 ## Getting Started
 
 To quickly install `raspi-flutter` on your Raspberry Pi, open a terminal and simply run the following command:
