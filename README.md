@@ -1,12 +1,12 @@
-# raspi-flutter: Raspberry Pi Flutter Development Toolkit
+# snapp_installer: Raspberry Pi Flutter Development Toolkit
 
 <p align="left">
-<img src="assets\background.png?raw=true" width="100%" alt="raspi-flutter" />
+<img src="assets\background.png?raw=true" width="100%" alt="snapp_installer" />
 </p>
 
-**raspi-flutter** is a command-line tool that simplifies the installation and development of Flutter applications on your Raspberry Pi. This Bash script automates the process of setting up the Flutter environment, installs essential files and dependencies, and offers additional features like running your Flutter apps in **kiosk** mode.
+**snapp_installer** is a command-line tool that simplifies the installation and development of Flutter applications on your Raspberry Pi. This Bash script automates the process of setting up the Flutter environment, installs essential files and dependencies, and offers additional features like running your Flutter apps in **kiosk** mode.
 
-With **raspi-flutter**, you can effortlessly configure your Raspberry Pi for Flutter app development and create immersive user experiences by running your apps in kiosk mode.
+With **snapp_installer**, you can effortlessly configure your Raspberry Pi for Flutter app development and create immersive user experiences by running your apps in kiosk mode.
 
 
 ## Prerequisites
@@ -18,19 +18,19 @@ Before running the installer script, ensure you have the following prerequisites
 - **Curl** - by default is available
 
 ## Kiosk Mode Result
-https://github.com/Snapp-X/raspi-flutter/assets/47558577/f580b1e8-e295-453a-8894-e03f2d9d67fc
+<!-- add video here -->
 
 
 ## Getting Started
 
-To quickly install `raspi-flutter` on your Raspberry Pi, open a terminal and simply run the following command:
+To quickly install `snapp_installer` on your Raspberry Pi, open a terminal and simply run the following command:
 
 ```bash
-bash <(curl -fSL https://raw.githubusercontent.com/Snapp-X/raspi-flutter/main/installer.sh) && source ~/.bashrc
+bash <(curl -fSL https://raw.githubusercontent.com/Snapp-X/snapp_installer/main/installer.sh) && source ~/.bashrc
 ```
 ## Usage
 
-Once `raspi-flutter` is installed on your Raspberry Pi, you can use it by simply running the desired command in your terminal. Here are the available commands:
+Once `snapp_installer` is installed on your Raspberry Pi, you can use it by simply running the desired command in your terminal. Here are the available commands:
 
 - **doctor**: Check the installation status and dependencies.
 - **install**: Install Flutter and set up the environment.
@@ -43,12 +43,12 @@ Once `raspi-flutter` is installed on your Raspberry Pi, you can use it by simply
 For example, to check the installation status, kiosk mode state, and dependencies, simply run:
 
 ```bash
-raspi-flutter doctor
+snapp_installer doctor
 ```
 
 ## Install Flutter Environment
 
-The "install" command in `raspi-flutter` automates the installation of Flutter on your Raspberry Pi and prepares the environment for Flutter app development. Here's what it does:
+The "install" command in `snapp_installer` automates the installation of Flutter on your Raspberry Pi and prepares the environment for Flutter app development. Here's what it does:
 
 - **Installs Linux Dependencies**: It ensures that essential Linux packages, such as `curl`, `git`, and more, are installed on your Raspberry Pi.
 
@@ -67,11 +67,11 @@ The "install" command in `raspi-flutter` automates the installation of Flutter o
 To use the "install" command, simply follow the Getting Started section in this README and run:
 
 ```bash
-raspi-flutter install
+snapp_installer install
 ```
 ## Kiosk Mode
 
-`raspi-flutter` allows you to run your Flutter app in a kiosk mode on your Raspberry Pi, ensuring a seamless and focused user experience. To enable kiosk mode, follow these steps:
+`snapp_installer` allows you to run your Flutter app in a kiosk mode on your Raspberry Pi, ensuring a seamless and focused user experience. To enable kiosk mode, follow these steps:
 
 1. **Build Your Flutter App**: Ensure you have built your Flutter app for the Linux platform in release mode. You can use the following command to generate the app bundle:
 
@@ -81,23 +81,23 @@ raspi-flutter install
 1. **Enable Kiosk Mode**:To run your Flutter app in kiosk mode, use the following command, replacing `<file_path>`  with the exact path to the Flutter app bundle you built in step 1:
 
 ```bash
-raspi-flutter kiosk <file_path>
+snapp_installer kiosk <file_path>
 ```
 
 For example:
 
 ```bash
-raspi-flutter kiosk /home/pi/app/build/linux/arm64/release/bundle/app
+snapp_installer kiosk /home/pi/app/build/linux/arm64/release/bundle/app
 ```
 Ensure that the specified file path exists, points to an executable file, and is the path to your Flutter app bundle.
 
 **Auto Login**: 
-Kiosk mode typically requires auto login on your Raspberry Pi. If auto login is not already enabled, raspi-flutter will enable it for you.
+Kiosk mode typically requires auto login on your Raspberry Pi. If auto login is not already enabled, snapp_installer will enable it for you.
 
 You can also enable the auto login manually, by using the following command:
 
 ```bash
-raspi-flutter autologin
+snapp_installer autologin
 ```
 
 **Disable Kiosk Mode (Optional)**:
@@ -111,7 +111,7 @@ To disable the kiosk mode and return your Raspberry Pi to a standard desktop env
    Open a terminal on your Raspberry Pi and execute the following command to disable kiosk mode:
 
 ```bash
-raspi-flutter disable_kiosk
+snapp_installer disable_kiosk
 ```
 
 
