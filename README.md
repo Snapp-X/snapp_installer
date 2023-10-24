@@ -26,7 +26,7 @@ Before running the installer script, ensure you have the following prerequisites
 To quickly install `snapp_installer` on your Raspberry Pi, open a terminal and simply run the following command:
 
 ```bash
-bash <(curl -fSL https://raw.githubusercontent.com/Snapp-X/snapp_installer/main/installer.sh) && source ~/.bashrc
+bash <(curl -fSL https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/installer.sh) && source ~/.bashrc
 ```
 ## Usage
 
@@ -122,7 +122,7 @@ Please note that enabling kiosk mode may affect the default behavior of your Ras
 
 ## Contributing
 
-If you encounter any issues with the installer script or have suggestions for improvements, please [open an issue](https://github.com/yourusername/your-repo/issues). You are welcome to contribute to the development of this project by forking the repository and submitting pull requests.
+If you encounter any issues with the installer script or have suggestions for improvements, please [open an issue](https://github.com/Snapp-Embedded/snapp_installer/issues). You are welcome to contribute to the development of this project by forking the repository and submitting pull requests.
 
 ## License
 

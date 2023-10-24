@@ -23,9 +23,9 @@ main() {
     
     cd $snapp_home
     
-    curl -f -o snapp_installer https://raw.githubusercontent.com/Snapp-X/snapp_installer/main/snapp_installer
-    curl -f -o kiosk.sh https://raw.githubusercontent.com/Snapp-X/snapp_installer/main/kiosk.sh
-    curl -f -o config.ini https://raw.githubusercontent.com/Snapp-X/snapp_installer/main/config.ini
+    curl -f -o snapp_installer https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/snapp_installer
+    curl -f -o kiosk.sh https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/kiosk.sh
+    curl -f -o config.ini https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/config.ini
     
     echo "add nececerry file permissions to downloaded files"
     echo
