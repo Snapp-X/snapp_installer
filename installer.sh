@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script installs raspi-flutter on your embedded device.
+# This script installs snapp_installer on your embedded device.
 # It has been tested on Raspberry Pi 4 with Raspbian OS 64-bit.
 
 
@@ -8,61 +8,61 @@
 set -e
 
 user_home=$(eval echo ~${SUDO_USER})
-raspi_home=$user_home/raspi-flutter/bin
+snapp_home=$user_home/snapp_installer/bin
 
 main() {
     # create a folder in user home /embedded
-    if [ ! -d "$raspi_home" ]; then
-        echo "Creating directory $raspi_home."
+    if [ ! -d "$snapp_home" ]; then
+        echo "Creating directory $snapp_home."
         echo
-        mkdir -p $raspi_home
+        mkdir -p $snapp_home
     else
-        echo "The $raspi_home directory is already available."
+        echo "The $snapp_home directory is already available."
         echo
     fi
     
-    cd $raspi_home
+    cd $snapp_home
     
-    curl -f -o raspi-flutter https://raw.githubusercontent.com/Snapp-X/raspi-flutter/main/raspi-flutter
-    curl -f -o kiosk.sh https://raw.githubusercontent.com/Snapp-X/raspi-flutter/main/kiosk.sh
-    curl -f -o config.ini https://raw.githubusercontent.com/Snapp-X/raspi-flutter/main/config.ini
+    curl -f -o snapp_installer https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/snapp_installer
+    curl -f -o kiosk.sh https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/kiosk.sh
+    curl -f -o config.ini https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/config.ini
     
     echo "add nececerry file permissions to downloaded files"
     echo
     
-    # update raspi-flutter  file permissions to be executable for all users
-    chmod a+x raspi-flutter
+    # update snapp_installer  file permissions to be executable for all users
+    chmod a+x snapp_installer
     
     # update kiosk.sh file permissions to be writable for current user and group
     chmod ug+w kiosk.sh
     
-    if ! check_raspi_installed; then
-        add_raspi_to_path
-        export PATH="$PATH:$raspi_home"
+    if ! check_snapp_installed; then
+        add_snapp_to_path
+        export PATH="$PATH:$snapp_home"
     fi
     
-    echo "raspi-flutter installed successfully."
+    echo "snapp_installer installed successfully."
     echo
-    echo "raspi-flutter path:"
-    which raspi-flutter
+    echo "snapp_installer path:"
+    which snapp_installer
     
     echo
-    echo "Type raspi-flutter in your terminal"
+    echo "Type snapp_installer in your terminal"
 }
 
 
-add_raspi_to_path(){
-    if grep -q "export PATH=\"\$PATH:$raspi_home\"" "$user_home/.bashrc"; then
-        echo "we have raspi-flutter as env in ~/.bashrc."
+add_snapp_to_path(){
+    if grep -q "export PATH=\"\$PATH:$snapp_home\"" "$user_home/.bashrc"; then
+        echo "we have snapp_installer as env in ~/.bashrc."
     else
-        echo "adding raspi-flutter to PATH as env in ~/.bashrc."
-        echo "export PATH=\"\$PATH:$raspi_home\"" >> $user_home/.bashrc
+        echo "adding snapp_installer to PATH as env in ~/.bashrc."
+        echo "export PATH=\"\$PATH:$snapp_home\"" >> $user_home/.bashrc
         source $user_home/.bashrc
     fi
 }
 
-check_raspi_installed(){
-    which raspi-flutter >/dev/null 2>&1
+check_snapp_installed(){
+    which snapp_installer >/dev/null 2>&1
     return $?
 }
 

@@ -7,13 +7,12 @@ flutter_channel="stable"
 flutter_path="$user_home/sdk"
 flutter_folder="$flutter_path/flutter"
 
-raspi_home=$user_home/raspi-flutter/bin
+snapp_home=$user_home/snapp_installer/bin
 kiosk_home=$user_home/kiosk
 
 default_autostart="/etc/xdg/lxsession/LXDE-pi/autostart"
 user_autostart_dir="$user_home/.config/lxsession/LXDE-pi/"
 user_autostart="$user_home/.config/lxsession/LXDE-pi/autostart"
-
 
 # List of dependency packages to install the flutter
 dep_packages=("curl" "git" "unzip" "xz-utils" "zip" "libglu1-mesa")
@@ -289,7 +288,7 @@ flutter build linux --release
     fi
     
     echo "Creating file $kiosk_file. from template"
-    sudo -E cp $raspi_home/kiosk.sh $kiosk_home/
+    sudo -E cp $snapp_home/kiosk.sh $kiosk_home/
     echo
     
     echo "Add Application path to $kiosk_file file"

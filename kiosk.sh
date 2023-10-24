@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Do not change this file. 
+# It is a template file and will be used by snapp_installer to run the app in kiosk mode.
+
 sleep 2
 
 xset s noblank
