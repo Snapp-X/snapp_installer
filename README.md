@@ -18,7 +18,10 @@ Before running the installer script, ensure you have the following prerequisites
 - **Curl** - by default is available
 
 ## Kiosk Mode Result
-<!-- add video here -->
+
+
+https://github.com/Snapp-Embedded/snapp_installer/assets/47558577/0f2e99bc-b2eb-45f7-b4a9-3bcc17770a02
+
 
 
 ## Getting Started
