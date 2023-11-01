@@ -201,6 +201,19 @@ install() {
     echo
     print_banner "Final Checks:"
     doctor
+    
+    print_seperator
+    
+    echo
+    echo
+    echo "Flutter installation has been completed"
+    echo
+    echo "To be able to use it, you should restart your terminal  "
+    echo "Or you can enter the following command: "
+    echo
+    echo "source ~/.bashrc"
+    echo
+    echo
 }
 
 uninstall() {
@@ -228,7 +241,7 @@ kiosk(){
             current_folder_name=$(basename "$PWD")
             
             executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
-
+            
             
             if [ -x "$executable_path" ]; then
                 echo "Found an executable file: $executable_path"
