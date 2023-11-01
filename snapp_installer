@@ -208,9 +208,51 @@ uninstall() {
 }
 
 kiosk(){
+    
+    set -e
+    
+    echo
+    echo
+    
+    local possible_path="";
+    
     if [ -z "$1" ]; then
+        echo "Excutable file path not provided".
+        echo
+        if [ -f "pubspec.yaml" ]; then
+            echo "It seems you are in the root of a flutter project."
+            echo "Try to find the executable file in the build folder."
+            echo
+            
+            # Check for the executable file with the same name as the current folder
+            current_folder_name=$(basename "$PWD")
+            
+            executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
+
+            
+            if [ -x "$executable_path" ]; then
+                echo "Found an executable file: $executable_path"
+                echo
+                # Prompt the user for confirmation
+                read -p "Do you want to use this executable file? (y/n): " choice
+                
+                if [ "$choice" = "y" ]; then
+                    possible_path=$executable_path
+                else
+                    echo "Operation canceled."
+                    echo
+                fi
+            fi
+        fi
+    else
+        possible_path="$1"
+    fi
+    
+    
+    if [ -z "$possible_path" ]; then
+        
         echo "
-No path parameter provided.
+You should provide path to a excutable file or run this command in a flutter project.
 
 Usage: kiosk <file_path>
 to run the app bundle in kiosk mode you need to provide the exact path to the flutter app bundle
@@ -220,13 +262,11 @@ you can generate your file with the following command:
 
 flutter build linux --release
         "
-        echo
+        
         return 1
     fi
     
-    set -e
-    
-    local app_path="$1"
+    local app_path=$possible_path
     
     if ! is_executable_file_valid "$app_path"; then
         return 1
