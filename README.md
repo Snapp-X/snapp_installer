@@ -72,6 +72,10 @@ To use the "install" command, simply follow the Getting Started section in this 
 ```bash
 snapp_installer install
 ```
+
+**Note**: After running the "install" command, you need to restart your terminal or run `source ~/.bashrc` to apply the changes to your PATH environment variable.
+
+
 ## Kiosk Mode
 
 `snapp_installer` allows you to run your Flutter app in a kiosk mode on your Raspberry Pi, ensuring a seamless and focused user experience. To enable kiosk mode, follow these steps:
@@ -81,7 +85,7 @@ snapp_installer install
 ```bash
  flutter build linux --release
 ```
-1. **Enable Kiosk Mode**:To run your Flutter app in kiosk mode, use the following command, replacing `<file_path>`  with the exact path to the Flutter app bundle you built in step 1:
+1. **Enable Kiosk Mode**:To run your Flutter app in kiosk mode, use the following command, replacing `<file_path>`  with the path to the Flutter app bundle you built in step 1:
 
 ```bash
 snapp_installer kiosk <file_path>
@@ -93,6 +97,13 @@ For example:
 snapp_installer kiosk /home/pi/app/build/linux/arm64/release/bundle/app
 ```
 Ensure that the specified file path exists, points to an executable file, and is the path to your Flutter app bundle.
+
+
+Or you can run this command in a flutter project directory without specifying the path:
+
+```bash
+snapp_installer kiosk
+```
 
 **Auto Login**: 
 Kiosk mode typically requires auto login on your Raspberry Pi. If auto login is not already enabled, snapp_installer will enable it for you.

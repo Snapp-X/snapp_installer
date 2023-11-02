@@ -201,6 +201,19 @@ install() {
     echo
     print_banner "Final Checks:"
     doctor
+    
+    print_seperator
+    
+    echo
+    echo
+    echo "Flutter installation has been completed"
+    echo
+    echo "To be able to use it, you should restart your terminal  "
+    echo "Or you can enter the following command: "
+    echo
+    echo "source ~/.bashrc"
+    echo
+    echo
 }
 
 uninstall() {
@@ -208,9 +221,51 @@ uninstall() {
 }
 
 kiosk(){
+    
+    set -e
+    
+    echo
+    echo
+    
+    local possible_path="";
+    
     if [ -z "$1" ]; then
+        echo "Excutable file path not provided".
+        echo
+        if [ -f "pubspec.yaml" ]; then
+            echo "It seems you are in the root of a flutter project."
+            echo "Try to find the executable file in the build folder."
+            echo
+            
+            # Check for the executable file with the same name as the current folder
+            current_folder_name=$(basename "$PWD")
+            
+            executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
+            
+            
+            if [ -x "$executable_path" ]; then
+                echo "Found an executable file: $executable_path"
+                echo
+                # Prompt the user for confirmation
+                read -p "Do you want to use this executable file? (y/n): " choice
+                
+                if [ "$choice" = "y" ]; then
+                    possible_path=$executable_path
+                else
+                    echo "Operation canceled."
+                    echo
+                fi
+            fi
+        fi
+    else
+        possible_path="$1"
+    fi
+    
+    
+    if [ -z "$possible_path" ]; then
+        
         echo "
-No path parameter provided.
+You should provide path to a excutable file or run this command in a flutter project.
 
 Usage: kiosk <file_path>
 to run the app bundle in kiosk mode you need to provide the exact path to the flutter app bundle
@@ -220,34 +275,37 @@ you can generate your file with the following command:
 
 flutter build linux --release
         "
+        
+        return 1
+    fi
+    
+    local app_path=$possible_path
+    
+    if ! is_executable_file_valid "$app_path"; then
+        return 1
+    fi
+    
+    # Use realpath to get the absolute path
+    absolute_path=$(realpath "$app_path")
+    
+    echo "Provided File is a valid path: $app_path"
+    
+    # Check if the file is absolute path
+    # If not, try to replace the relative path with the absolute path
+    if [ "$absolute_path" != "$app_path" ]; then
+        echo "But its not absolute path"
+        echo "Try to replace the relative path with the absolute path"
         echo
-        return 1
+        if ! is_executable_file_valid "$absolute_path"; then
+            echo "The absolute path is not valid: $absolute_path"
+            return 1
+        fi
+        app_path="$absolute_path"
+        echo "New path for the excutable file: $app_path"
     fi
-
-    set -e
+    echo
     
-    local app_path="$1"
-    
-    # Check if the provided path exists
-    if [ ! -e "$app_path" ]; then
-        echo "File or directory does not exist: $app_path"
-        return 1
-    fi
-    
-    # Check if the provided path is a regular file (not a directory)
-    if [ ! -f "$app_path" ]; then
-        echo "Not a regular file: $app_path"
-        return 1
-    fi
-    
-    # Check if the file is executable
-    if [ -x "$app_path" ]; then
-        echo "Provided File is a valid executable: $app_path"
-    else
-        echo "File is not executable: $app_path"
-        return 1
-    fi
-    
+    print_seperator
     
     if ! check_autologin; then
         echo "Autologin is disabled we have to enable it."
@@ -269,43 +327,41 @@ flutter build linux --release
     
     # check $kiosk_home is available or not
     if [ ! -d "$kiosk_home" ]; then
-        echo "Creating directory $kiosk_home."
+        echo "Creating a kiosk directory in home "
         mkdir -p $kiosk_home
         echo
     else
-        echo "The $kiosk_home directory is already available."
+        echo "The kiosk directory is already available in home."
         echo
     fi
-    
     
     local kiosk_file="$kiosk_home/kiosk.sh"
     
     # check if kiosk.sh file is available or not
     if [ -f "$kiosk_file" ]; then
-        echo "remove current $kiosk_file file and create a new one."
+        echo "remove current kiosk.sh file and create a new one."
         sudo -E rm $kiosk_file
         echo
     fi
     
-    echo "Creating file $kiosk_file. from template"
+    echo "Creating file kiosk.sh file from template"
     sudo -E cp $snapp_home/kiosk.sh $kiosk_home/
     echo
     
-    echo "Add Application path to $kiosk_file file"
+    echo "Add Application path to kiosk.sh file"
     sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g') \&/g" "$kiosk_file"
     echo
     
+    print_seperator
+    
     if [ ! -d "$user_autostart_dir" ]; then
-        echo "Creating directory $user_autostart_dir."
+        echo "Creating directory $user_autostart_dir"
         sudo -E mkdir -p $user_autostart_dir
-        echo
-    else
-        echo "The $user_autostart_dir directory is already available."
         echo
     fi
     
     if [ -f "$user_autostart" ]; then
-        echo "remove current $user_autostart file."
+        echo "remove current user LXDE-pi/autostart file."
         sudo -E rm $user_autostart
         echo
     fi
@@ -318,6 +374,14 @@ flutter build linux --release
     echo "@sleep 5" | sudo tee -a $user_autostart
     echo "@xdotool key alt+F11" | sudo tee -a $user_autostart
     
+    print_seperator
+    
+    echo
+    echo
+    echo "Kiosk mode has been enabled"
+    echo "Reboot your device to see the changes"
+    echo
+    echo
     echo
 }
 
@@ -367,7 +431,7 @@ disable_autologin() {
 }
 
 check_autologin() {
-    return $(sudo -E raspi-config nonint get_autologin)
+    return "$(sudo -E raspi-config nonint get_autologin)"
 }
 
 print_banner() {
@@ -401,6 +465,19 @@ print_banner() {
     echo "$border"
 }
 
+print_seperator(){
+    local width=40  # Adjust the width of the banner as needed
+    local border_char="*"
+    
+    echo
+    # prints $border_char $width times
+    for ((i = 0; i <= width; i++)); do
+        echo -n "*"
+    done
+    echo
+    echo
+}
+
 
 check_dep_packages() {
     all_installed=0 # Success (true)
@@ -425,6 +502,30 @@ show_dep_packages_state(){
     done
     
     return $all_installed
+}
+
+is_executable_file_valid(){
+    local file_path="$1"
+    
+    # Check if the provided path exists
+    if [ ! -e "$file_path" ]; then
+        echo "File or directory does not exist: $file_path"
+        return 1
+    fi
+    
+    # Check if the provided path is a regular file (not a directory)
+    if [ ! -f "$file_path" ]; then
+        echo "Not a regular file: $file_path"
+        return 1
+    fi
+    
+    # Check if the file is executable
+    if [ ! -x "$file_path" ]; then
+        echo "File is not executable: $file_path"
+        return 1
+    fi
+    
+    return 0
 }
 
 check_dev_packages() {
