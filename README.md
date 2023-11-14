@@ -29,8 +29,15 @@ https://github.com/Snapp-Embedded/snapp_installer/assets/47558577/0f2e99bc-b2eb-
 To quickly install `snapp_installer` on your Raspberry Pi, open a terminal and simply run the following command:
 
 ```bash
+bash <(curl -fSL https://snappembedded.io/installer) && source ~/.bashrc
+```
+
+or alternative:
+
+```bash
 bash <(curl -fSL https://raw.githubusercontent.com/Snapp-Embedded/snapp_installer/main/installer.sh) && source ~/.bashrc
 ```
+
 ## Usage
 
 Once `snapp_installer` is installed on your Raspberry Pi, you can use it by simply running the desired command in your terminal. Here are the available commands:
