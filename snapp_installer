@@ -581,10 +581,14 @@ show_kiosk_packages_state(){
     return $all_installed
 }
 
+
 # Function to install packages
 install_packages() {
     local packages=("$@")
     
+    # Update apt-get
+    sudo -E apt update -y
+
     # Check if the argument is an array
     if [[ ! "$(declare -p packages 2>/dev/null)" =~ "declare -a" ]]; then
         echo "Error: Argument is not an array."
