@@ -585,7 +585,9 @@ show_kiosk_packages_state(){
 current_display_manager(){
     # we can find the display manager by this command
     # loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type
-    local display_manager=$(loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type)
+    local display_manager="" 
+    
+    display_manager=$(loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type)
 
     # if the display manager variable contains the word "x11" then the display manager is x11
     if [[ $display_manager == *"x11"* ]]; then
@@ -599,22 +601,30 @@ current_display_manager(){
 
 setup_wayland_kiosk(){
     local kiosk_file="$1"
-    local line="@bash $kiosk_file"
     
-    file="/path/to/config/file"
+    local file="$wayland_user_autostart"
+
+    local temp_file=""
     temp_file=$(mktemp)  # Creating a temporary file to store modified content
+    
+    # TODO: update xdotool with wtype
+    local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5 && xdotool key alt+F11"
 
     autostart_present=false
 
-    if grep -qF "[autostart]" "$file" && grep -qF "kiosk=bash /home/douglash/kiosk/kiosk.sh && sleep 5 && xdotool key alt+F11" "$file"; then
-        echo "Both lines are present in $file"
-        exit 0  # Exits the script with success status
+    # Check if the line exists in the file 
+    # and if it does, then do not add it again
+    if grep -qF "[autostart]" "$file" && grep -qF "$kiosk_command" "$file"; then
+        echo "kiosk mode is already available in $file"
+        return 0
     fi
 
-
+    # Check if the [autostart] section exists in the file
+    # and if it does not, then add it
     if ! grep -qF "[autostart]" "$file"; then
         echo "[autostart]" >> "$file"
-        echo "Added [autostart] to $file"
+        echo "$kiosk_command" >> "$file"
+        return 0
     fi
 
     while IFS= read -r line; do
@@ -622,9 +632,9 @@ setup_wayland_kiosk(){
 
         if [[ $line == "[autostart]" ]]; then
             autostart_present=true
-        elif [[ $autostart_present == true && $line != "" ]]; then
-            if ! grep -qF "kiosk=bash /home/douglash/kiosk/kiosk.sh && sleep 5 && xdotool key alt+F11" "$file"; then
-                echo "kiosk=bash /home/douglash/kiosk/kiosk.sh && sleep 5 && xdotool key alt+F11" >> "$temp_file"
+        elif [[ $autostart_present == true ]]; then
+            if ! grep -qF "$kiosk_command" "$file"; then
+                echo "$kiosk_command" >> "$temp_file"
                 echo "Added kiosk command below [autostart] in $file"
             fi
             autostart_present=false
@@ -632,7 +642,6 @@ setup_wayland_kiosk(){
     done < "$file"
 
     mv "$temp_file" "$file" 
-    
 }
 
 setup_x11_kiosk(){
