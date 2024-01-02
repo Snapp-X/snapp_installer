@@ -49,6 +49,7 @@ Once `snapp_installer` is installed on your Raspberry Pi, you can use it by simp
 - **disable_kiosk**: Disable the kiosk mode.
 - **autologin**: Enable auto login on your device.
 - **disable_autologin**: Disable auto login on your device.
+- **enable_fullscreen**: Enable Full Screen in your Flutter project.
 
 For example, to check the installation status, kiosk mode state, and dependencies, simply run:
 
@@ -87,6 +88,16 @@ snapp_installer install
 
 `snapp_installer` allows you to run your Flutter app in a kiosk mode on your Raspberry Pi, ensuring a seamless and focused user experience. To enable kiosk mode, follow these steps:
 
+#### By Flutter Project
+If you have a Flutter project on your machine, you can simply enable kiosk mode by running the following command in your project directory:
+
+```bash
+snapp_installer kiosk
+```
+
+It will take care of the rest and run your Flutter app in kiosk mode.
+
+#### By Flutter App Bundle
 1. **Build Your Flutter App**: Ensure you have built your Flutter app for the Linux platform in release mode. You can use the following command to generate the app bundle:
 
 ```bash
@@ -105,12 +116,6 @@ snapp_installer kiosk /home/pi/app/build/linux/arm64/release/bundle/app
 ```
 Ensure that the specified file path exists, points to an executable file, and is the path to your Flutter app bundle.
 
-
-Or you can run this command in a flutter project directory without specifying the path:
-
-```bash
-snapp_installer kiosk
-```
 
 **Auto Login**: 
 Kiosk mode typically requires auto login on your Raspberry Pi. If auto login is not already enabled, snapp_installer will enable it for you.
