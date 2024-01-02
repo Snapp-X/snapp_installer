@@ -54,6 +54,8 @@ main(){
         enable_autologin
         elif [ "$1" == "disable_autologin" ]; then
         disable_autologin
+        elif [ "$1" == "enable_fullscreen" ]; then
+        enable_flutter_project_fullscreen
     else
         echo "Invalid argument: $1"
         help
@@ -74,6 +76,7 @@ help(){
     echo "  disable_kiosk      : Disable the kiosk mode"
     echo "  autologin          : Enable the auto login"
     echo "  disable_autologin  : Disable the auto login"
+    echo "  enable_fullscreen  : Enable fullscreen in your Flutter project"
     echo
     exit 1
 }
@@ -99,12 +102,18 @@ doctor(){
     
     
     echo
-    echo "Kiosk Mode: "
+    echo "Kiosk Mode: $(current_display_manager)"
     echo
-    echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
-    echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
-    echo " $(check_kiosk_packages && echo '✓' || echo '✘') | Kiosk mode packages | xset xdotool ..."
-    show_kiosk_packages_state
+    
+    if [ "$(current_display_manager)" == "wayland" ]; then
+        echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
+        echo " $(is_flutter_project_fullscreen && echo '✓' || echo '✘') | Fullscreen is enabled in your Flutter project"
+    else
+        echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
+        echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
+        echo " $(check_kiosk_packages && echo '✓' || echo '✘') | Kiosk mode packages | xset xdotool ..."
+        show_kiosk_packages_state
+    fi
 }
 
 install() {
@@ -224,7 +233,6 @@ uninstall() {
 }
 
 kiosk(){
-    
     set -e
     
     echo
@@ -232,19 +240,62 @@ kiosk(){
     
     local possible_path="";
     
+    # Check if the user provided a path to the executable file
+    # If not, try to find if the user is in a flutter project
+    # If the user is in a flutter project, try to find the executable file in the build folder
     if [ -z "$1" ]; then
         echo "Excutable file path not provided".
         echo
+        
+        # Check if the user is in a flutter project
         if [ -f "pubspec.yaml" ]; then
             echo "It seems you are in the root of a flutter project."
-            echo "Try to find the executable file in the build folder."
             echo
             
             # Check for the executable file with the same name as the current folder
             current_folder_name=$(basename "$PWD")
             
-            executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
+            local rebuild_excutable=1
             
+            # Check if the current flutter project has fullscreen enabled in wayland
+            if ! is_flutter_project_fullscreen && [ "$(current_display_manager)" == "wayland" ]; then
+                echo "In the newest version of the Raspberry Pi OS, you have Wayland as the default display manager."
+                echo "With Wayland, you can not run the app in fullscreen mode."
+                echo "You should enable fullscreen in your Flutter project in my_application.cc file."
+                echo
+                
+                read -p "Do you want to enable fullscreen in your Flutter project? (y/n): " choice
+                
+                if [ "$choice" = "y" ]; then
+                    enable_flutter_project_fullscreen
+                    echo
+                    rebuild_excutable=0
+                else
+                    echo "Operation canceled."
+                    echo
+                fi
+            fi
+            
+            # If we need to rebuild linux app bundle we will ask it from user
+            if [ $rebuild_excutable == 0 ]; then
+                echo "We changed your Flutter project full screen mode."
+                
+                read -p "Do you want to rebuild your Flutter project? (y/n): " choice
+                
+                if [ "$choice" = "y" ]; then
+                    flutter build linux --release
+                    
+                    echo "Rebuild completed."
+                    echo
+                else
+                    echo "Operation canceled."
+                    echo
+                    exit 1
+                fi
+            fi
+            
+            # Find the executable file in the build folder
+            executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
             
             if [ -x "$executable_path" ]; then
                 echo "Found an executable file: $executable_path"
@@ -257,6 +308,7 @@ kiosk(){
                 else
                     echo "Operation canceled."
                     echo
+                    exit 1
                 fi
             fi
         fi
@@ -356,7 +408,7 @@ flutter build linux --release
     echo
     
     print_seperator
-
+    
     # check if the os is using x11 or wayland
     if [ "$(current_display_manager)" == "wayland" ]; then
         echo "Setup wayland kiosk mode"
@@ -399,7 +451,7 @@ disable_kiosk() {
 
 check_kiosk() {
     local kiosk_file="$kiosk_home/kiosk.sh"
-
+    
     # TODO: check for the wayland kiosk mode
     
     if [ -f "$user_autostart" ]; then
@@ -474,7 +526,6 @@ print_seperator(){
     echo
 }
 
-
 check_dep_packages() {
     local all_installed=0 # Success (true)
     
@@ -490,7 +541,7 @@ check_dep_packages() {
 
 show_dep_packages_state(){
     local all_installed=0 # Success (true)
-
+    
     for package in "${dep_packages[@]}"; do
         if ! dpkg -l | grep -q "ii  $package"; then
             echo "    * ✘ $package is missing"
@@ -570,7 +621,7 @@ check_kiosk_packages() {
 
 show_kiosk_packages_state(){
     local all_installed=0 # Success (true)
-
+    
     for package in "${kiosk_packages[@]}"; do
         if ! dpkg -l | grep -q "ii  $package"; then
             echo "    * ✘ $package is missing"
@@ -585,40 +636,91 @@ show_kiosk_packages_state(){
 current_display_manager(){
     # we can find the display manager by this command
     # loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type
-    local display_manager="" 
+    local display_manager=""
     
     display_manager=$(loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type)
-
+    
     # if the display manager variable contains the word "x11" then the display manager is x11
     if [[ $display_manager == *"x11"* ]]; then
         echo "x11"
-    elif [[ $display_manager == *"wayland"* ]]; then
+        elif [[ $display_manager == *"wayland"* ]]; then
         echo "wayland"
     else
         echo "unknown"
     fi
 }
 
+# Function to check if fullscreen is enabled in the Flutter project
+# It checks if the file contains the definition of gtk_window_fullscreen
+is_flutter_project_fullscreen(){
+    # Specify the file path
+    local file_path="./linux/my_application.cc"
+    
+    # Check if the file exists
+    if [ -f "$file_path" ]; then
+        # Use grep to check if the file contains the definition of gtk_window_fullscreen
+        if grep -q "gtk_window_fullscreen" "$file_path"; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        echo "File does not exist: $file_path"
+        return 1
+    fi
+}
+
+# Function to enable fullscreen in the Flutter project
+# It adds the definition of gtk_window_fullscreen to the file
+enable_flutter_project_fullscreen(){
+    if [ ! -f "pubspec.yaml" ]; then
+        echo "You can only use this command in a Flutter project."
+        echo "Could not find pubspec.yaml file."
+        return 1
+    fi
+    
+    if ! is_flutter_project_fullscreen; then
+        echo
+        echo "Enable fullscreen in your Flutter project"
+        echo "Add Fullscreen command to my_application.cc file"
+        echo
+        
+        local file_path="./linux/my_application.cc"
+        local fullscreen_command="gtk_window_fullscreen(GTK_WINDOW(window));"
+        
+        if [ -f "$file_path" ]; then
+            # Use sed to replace specific line with fullscreen command
+            sed -i 's/^\(\s*\)gtk_window_set_default_size.*/\1'"$fullscreen_command"'/' "$file_path"
+            
+            echo "Fullscreen enabled in $file_path"
+        else
+            echo "File $file_path not found."
+        fi
+    else
+        echo "Fullscreen is already enabled in your Flutter project"
+    fi
+    
+}
+
 setup_wayland_kiosk(){
     local kiosk_file="$1"
     
     local file="$wayland_user_autostart"
-
+    
     local temp_file=""
     temp_file=$(mktemp)  # Creating a temporary file to store modified content
     
-    # TODO: update xdotool with wtype
-    local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5 && xdotool key alt+F11"
-
+    local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5"
+    
     autostart_present=false
-
-    # Check if the line exists in the file 
+    
+    # Check if the line exists in the file
     # and if it does, then do not add it again
     if grep -qF "[autostart]" "$file" && grep -qF "$kiosk_command" "$file"; then
         echo "kiosk mode is already available in $file"
         return 0
     fi
-
+    
     # Check if the [autostart] section exists in the file
     # and if it does not, then add it
     if ! grep -qF "[autostart]" "$file"; then
@@ -626,13 +728,13 @@ setup_wayland_kiosk(){
         echo "$kiosk_command" >> "$file"
         return 0
     fi
-
+    
     while IFS= read -r line; do
         echo "$line" >> "$temp_file"
-
+        
         if [[ $line == "[autostart]" ]]; then
             autostart_present=true
-        elif [[ $autostart_present == true ]]; then
+            elif [[ $autostart_present == true ]]; then
             if ! grep -qF "$kiosk_command" "$file"; then
                 echo "$kiosk_command" >> "$temp_file"
                 echo "Added kiosk command below [autostart] in $file"
@@ -640,13 +742,13 @@ setup_wayland_kiosk(){
             autostart_present=false
         fi
     done < "$file"
-
-    mv "$temp_file" "$file" 
+    
+    mv "$temp_file" "$file"
 }
 
 setup_x11_kiosk(){
     local kiosk_file="$1"
-
+    
     if [ ! -d "$user_autostart_dir" ]; then
         echo "Creating directory $user_autostart_dir"
         sudo -E mkdir -p $user_autostart_dir
@@ -666,7 +768,6 @@ setup_x11_kiosk(){
     echo "@bash $kiosk_file" | sudo tee -a $user_autostart
     echo "@sleep 5" | sudo tee -a $user_autostart
     echo "@xdotool key alt+F11" | sudo tee -a $user_autostart
-
 }
 
 
@@ -676,7 +777,7 @@ install_packages() {
     
     # Update apt-get
     sudo -E apt update -y
-
+    
     # Check if the argument is an array
     if [[ ! "$(declare -p packages 2>/dev/null)" =~ "declare -a" ]]; then
         echo "Error: Argument is not an array."
