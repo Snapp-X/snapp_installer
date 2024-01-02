@@ -109,12 +109,19 @@ doctor(){
     
     if [ "$(current_display_manager)" == "wayland" ]; then
         echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
-        echo " $(is_flutter_project_fullscreen && echo '✓' || echo '✘') | Fullscreen is enabled in your Flutter project"
+        echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
     else
         echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
         echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
         echo " $(check_kiosk_packages && echo '✓' || echo '✘') | Kiosk mode packages | xset xdotool ..."
         show_kiosk_packages_state
+    fi
+    
+    if [ -f "pubspec.yaml" ]; then
+        echo
+        echo "Flutter Project:"
+        echo
+        echo " $(is_flutter_project_fullscreen && echo '✓' || echo '✘') | Fullscreen is enabled in your Flutter project"
     fi
 }
 
@@ -435,19 +442,18 @@ flutter build linux --release
 disable_kiosk() {
     echo
     print_banner "Disable kiosk mode"
-
+    
     # check if the os is using x11 or wayland
     if [ "$(current_display_manager)" == "wayland" ]; then
         echo "Disable wayland kiosk mode"
         echo
-
-        # TODO: update xdotool with wtype
+        
         local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5"
-
+        
         echo "kiosk command: $kiosk_command"
-
+        
         local file="$wayland_user_autostart"
-    
+        
         # if kiosk command is in the file just remove it
         if grep -qF "$kiosk_command" "$file"; then
             echo "remove kiosk command from $file"
@@ -456,7 +462,7 @@ disable_kiosk() {
             echo "Kiosk mode has been disabled"
             echo
         else
-            echo "Kiosk mode is already disabled"    
+            echo "Kiosk mode is already disabled"
         fi
     else
         echo "Disable X11 kiosk mode"
@@ -473,22 +479,31 @@ disable_kiosk() {
             echo "Kiosk mode is already disabled"
         fi
     fi
-
+    
     sleep 3
-    sudo -E reboot  
-    
-    
+    sudo -E reboot
 }
 
 check_kiosk() {
     local kiosk_file="$kiosk_home/kiosk.sh"
     
-    # TODO: check for the wayland kiosk mode
-    
-    if [ -f "$user_autostart" ]; then
-        # Check if the line exists in the file
-        if grep -qF "@bash $kiosk_file" "$user_autostart"; then
+    if [ "$(current_display_manager)" == "wayland" ]; then
+        local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5"
+        
+        local file="$wayland_user_autostart"
+        
+        # if kiosk command is in the file just remove it
+        if grep -qF "$kiosk_command" "$file"; then
             return 0
+        else
+            return 1
+        fi
+    else
+        if [ -f "$user_autostart" ]; then
+            # Check if the line exists in the file
+            if grep -qF "@bash $kiosk_file" "$user_autostart"; then
+                return 0
+            fi
         fi
     fi
     
@@ -737,7 +752,7 @@ setup_wayland_kiosk(){
     local kiosk_file="$1"
     
     local file="$wayland_user_autostart"
-
+    
     # Check if the [wm-actions] section exists in the file
     if ! grep -q "\[wm-actions\]" "$file"; then
         # If it doesn't exist, add the section and the desired lines
@@ -757,8 +772,8 @@ setup_wayland_kiosk(){
     fi
     
     local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5"
-
-    # Check if the line exists in the file 
+    
+    # Check if the line exists in the file
     # and if it does, then do not add it again
     if grep -qF "[autostart]" "$file" && grep -qF "$kiosk_command" "$file"; then
         echo "kiosk mode is already available in $file"
