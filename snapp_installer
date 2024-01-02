@@ -319,6 +319,25 @@ kiosk(){
                     echo
                     exit 1
                 fi
+            else
+                echo "Could not find an executable file in the build folder."
+                echo
+                
+                read -p "Do you want to build your Flutter project? (y/n): " choice
+                
+                if [ "$choice" = "y" ]; then
+                    flutter build linux --release
+                    
+                    echo "Rebuild completed."
+                    echo
+                    executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
+                    possible_path=$executable_path
+                    
+                else
+                    echo "Operation canceled."
+                    echo
+                    exit 1
+                fi
             fi
         fi
     else
