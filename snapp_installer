@@ -29,12 +29,14 @@ dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma
 # List of dependency packages for the kiosk mode
 kiosk_packages=("x11-xserver-utils" "xdotool")
 
+quiet_mode=0  # Default to verbose mode
+
 main(){
     # Check the number of command-line arguments
     if [ $# -eq 0 ]; then
-        echo
-        echo "You need to specify a Command:"
-        echo
+        log
+        log "You need to specify a Command:"
+        log
         help
         exit 1
     fi
@@ -59,76 +61,75 @@ main(){
         elif [ "$1" == "enable_fullscreen" ]; then
         enable_flutter_project_fullscreen
     else
-        echo "Invalid argument: $1"
+        log "Invalid argument: $1"
         help
         exit 1
     fi
 }
 
 help(){
-    echo
-    echo "Usage: $0 <command>"
-    echo
-    echo "Options:"
-    echo "  help               : Show this help message"
-    echo "  doctor             : Check all the steps"
-    echo "  install            : Install Flutter "
-    echo "  uninstall          : Uninstall Flutter "
-    echo "  kiosk              : Run the app bundle in kiosk mode"
-    echo "  disable_kiosk      : Disable the kiosk mode"
-    echo "  autologin          : Enable the auto login"
-    echo "  disable_autologin  : Disable the auto login"
-    echo "  enable_fullscreen  : Enable fullscreen in your Flutter project"
-    echo
+    log
+    log "Usage: $0 <command>"
+    log
+    log "Options:"
+    log "  help               : Show this help message"
+    log "  doctor             : Check all the steps"
+    log "  install            : Install Flutter "
+    log "  uninstall          : Uninstall Flutter "
+    log "  kiosk              : Run the app bundle in kiosk mode"
+    log "  disable_kiosk      : Disable the kiosk mode"
+    log "  autologin          : Enable the auto login"
+    log "  disable_autologin  : Disable the auto login"
+    log
     exit 1
 }
 
 doctor(){
     print_banner "Doctor summary:"
-    echo
-    echo "Installation: "
-    echo
+    log
+    log "Installation: "
+    log
     # Check dependency packages (curl, git, unzip, ...)
-    echo " $(check_dep_packages && echo '✓' || echo '✘') | Linux Dependency packages | curl git unzip ..."
+    log " $(check_dep_packages && log '✓' || log '✘') | Linux Dependency packages | curl git unzip ..."
     show_dep_packages_state
     # Check Flutter folder
-    echo " $(check_flutter_folder && echo '✓' || echo '✘' ) | Flutter folder is located in $flutter_folder."
+    log " $(check_flutter_folder && log '✓' || log '✘' ) | Flutter folder is located in $flutter_folder."
     # Check Flutter command
-    echo " $(check_flutter_in_path && echo '✓' || echo '✘') | Flutter command is defined in .bashrc file."
-    echo " $(check_flutter_installed && echo '✓' || echo '✘') | Flutter command is available in the PATH."
+    log " $(check_flutter_in_path && log '✓' || log '✘') | Flutter command is defined in .bashrc file."
+    log " $(check_flutter_installed && log '✓' || log '✘') | Flutter command is available in the PATH."
     # Check Linux development packages (clang, cmake, ninja-build, ...)
-    echo " $(check_dev_packages && echo '✓' || echo '✘') | Linux development packages | clang cmake ninja-build ..."
+    log " $(check_dev_packages && log '✓' || log '✘') | Linux development packages | clang cmake ninja-build ..."
     show_dev_packages_state
     # Check Flutter channel
-    echo " $(check_flutter_channel && echo '✓' || echo '✘') | Check flutter channel. should be $flutter_channel."
+    log " $(check_flutter_channel && log '✓' || log '✘') | Check flutter channel. should be $flutter_channel."
     
     
-    echo
-    echo "Kiosk Mode: $(current_display_manager)"
-    echo
+    log
+    log "Kiosk Mode: $(current_display_manager)"
+    log
     
     if [ "$(current_display_manager)" == "wayland" ]; then
-        echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
-        echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
+        log " $(check_autologin && log '✓' || log '✘') | Auto login is enabled in your device"
+        log " $(check_kiosk && log '✓' || log '✘') | Kiosk mode is enabled"
     else
-        echo " $(check_autologin && echo '✓' || echo '✘') | Auto login is enabled in your device"
-        echo " $(check_kiosk && echo '✓' || echo '✘') | Kiosk mode is enabled"
-        echo " $(check_kiosk_packages && echo '✓' || echo '✘') | Kiosk mode packages | xset xdotool ..."
+        log " $(check_autologin && log '✓' || log '✘') | Auto login is enabled in your device"
+        log " $(check_kiosk && log '✓' || log '✘') | Kiosk mode is enabled"
+        log " $(check_kiosk_packages && log '✓' || log '✘') | Kiosk mode packages | xset xdotool ..."
         show_kiosk_packages_state
     fi
     
     if [ -f "pubspec.yaml" ]; then
-        echo
-        echo "Flutter Project:"
-        echo
-        echo " $(is_flutter_project_fullscreen && echo '✓' || echo '✘') | Fullscreen is enabled in your Flutter project"
+        log
+        log "Flutter Project:"
+        log
+        log " $(is_flutter_project_fullscreen && echo '✓' || echo '✘') | Fullscreen is enabled in your Flutter project"
     fi
 }
 
 install() {
     print_banner "Installation Summary"
-    echo
-    echo "
+    log
+    log "
 * Get Linux dependencies to be able to run the flutter: curl, git ,...
 * Clone the flutter from Github: $flutter_repo
 * move flutter to the $flutter_folder directory
@@ -139,7 +140,7 @@ install() {
 * run flutter doctor
 * run flutter precache command for linux
     "
-    echo
+    log
     
     set -e
     
@@ -147,14 +148,14 @@ install() {
     if ! check_dep_packages; then
         install_packages "${dep_packages[@]}"
     else
-        echo "Linux dependencies are already installed"
+        log "Linux dependencies are already installed"
         show_dep_packages_state
     fi
-    echo
+    log
     
     print_banner "Clone Flutter"
     if ! check_flutter_folder; then
-        echo "Clone the flutter from Github: $flutter_repo"
+        log "Clone the flutter from Github: $flutter_repo"
         git clone $flutter_repo -b $flutter_channel
         
         if [ ! -d "$flutter_path" ]; then
@@ -162,11 +163,11 @@ install() {
         fi
         
         sudo -E mv flutter $flutter_path
-        echo "Flutter moved to the $flutter_path directory"
+        log "Flutter moved to the $flutter_path directory"
     else
-        echo "Flutter folder is already available in $flutter_folder"
+        log "Flutter folder is already available in $flutter_folder"
     fi
-    echo
+    log
     
     
     print_banner "Add Flutter to PATH"
@@ -177,64 +178,66 @@ install() {
     fi
     
     if ! check_flutter_installed; then
-        echo "Add Flutter to PATH for this session"
+        log "Add Flutter to PATH for this session"
         eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
     fi
     
-    echo
+    log
     print_banner "Check Flutter Path"
-    echo
-    echo "Flutter is located at:"
+    log
+    log "Flutter is located at:"
     which flutter
-    echo
+    log
     
     
     print_banner "Linux Development Dependencies"
     if ! check_dev_packages; then
         install_packages "${dev_packages[@]}"
     else
-        echo "Linux development dependencies are already installed"
+        log "Linux development dependencies are already installed"
         show_dev_packages_state
     fi
-    echo
+    log
     
     
     print_banner "Check Flutter Channel"
-    echo "change Flutter channel to $flutter_channel"
+    log "change Flutter channel to $flutter_channel"
     if ! check_flutter_channel; then
         flutter channel $flutter_channel
     else
-        echo "Flutter channel is already on $flutter_channel"
+        log "Flutter channel is already on $flutter_channel"
     fi
-    echo
+    log
     
     print_banner "Flutter Doctor"
     flutter doctor -v
-    echo
+    log
     
     print_banner "Flutter Precache"
-    echo "run flutter precache command for linux"
+    log "run flutter precache command for linux"
     flutter precache --universal --linux
-    echo
+    log
     
-    echo "Flutter Linux GTK installed Successfully"
-    echo
+    log "Flutter Linux GTK installed Successfully"
+    log
     print_banner "Final Checks:"
     doctor
     
     print_seperator
+
+    log
+    log
+    log "Flutter installation has been completed"
+    log
+
+    log_verbose "To be able to use it, you should restart your terminal  "
+    log_verbose "Or you can enter the following command: "
+    log_verbose
+    log_verbose "source ~/.bashrc"
+    log_verbose
+    log_verbose   
     
-    echo
-    echo
-    echo "Flutter installation has been completed"
-    echo
-    echo "To be able to use it, you should restart your terminal  "
-    echo "Or you can enter the following command: "
-    echo
-    echo "source ~/.bashrc"
-    echo
-    echo
 }
 
 uninstall() {
@@ -244,8 +247,8 @@ uninstall() {
 kiosk(){
     set -e
     
-    echo
-    echo
+    log
+    log
     
     local possible_path="";
     
@@ -253,13 +256,13 @@ kiosk(){
     # If not, try to find if the user is in a flutter project
     # If the user is in a flutter project, try to find the executable file in the build folder
     if [ -z "$1" ]; then
-        echo "Excutable file path not provided".
-        echo
+        log "Excutable file path not provided".
+        log
         
         # Check if the user is in a flutter project
         if [ -f "pubspec.yaml" ]; then
-            echo "It seems you are in the root of a flutter project."
-            echo
+            log "It seems you are in the root of a flutter project."
+            log
             
             # Check for the executable file with the same name as the current folder
             current_folder_name=$(basename "$PWD")
@@ -268,37 +271,37 @@ kiosk(){
             
             # Check if the current flutter project has fullscreen enabled in wayland
             if ! is_flutter_project_fullscreen && [ "$(current_display_manager)" == "wayland" ]; then
-                echo "In the newest version of the Raspberry Pi OS, you have Wayland as the default display manager."
-                echo "With Wayland, you can not run the app in fullscreen mode."
-                echo "You should enable fullscreen in your Flutter project in my_application.cc file."
-                echo
+                log "In the newest version of the Raspberry Pi OS, you have Wayland as the default display manager."
+                log "With Wayland, you can not run the app in fullscreen mode."
+                log "You should enable fullscreen in your Flutter project in my_application.cc file."
+                log
                 
                 read -p "Do you want to enable fullscreen in your Flutter project? (y/n): " choice
                 
                 if [ "$choice" = "y" ]; then
                     enable_flutter_project_fullscreen
-                    echo
+                    log
                     rebuild_excutable=0
                 else
-                    echo "Operation canceled."
-                    echo
+                    log "Operation canceled."
+                    log
                 fi
             fi
             
             # If we need to rebuild linux app bundle we will ask it from user
             if [ $rebuild_excutable == 0 ]; then
-                echo "We changed your Flutter project full screen mode."
+                log "We changed your Flutter project full screen mode."
                 
                 read -p "Do you want to rebuild your Flutter project? (y/n): " choice
                 
                 if [ "$choice" = "y" ]; then
                     flutter build linux --release
                     
-                    echo "Rebuild completed."
-                    echo
+                    log "Rebuild completed."
+                    log
                 else
-                    echo "Operation canceled."
-                    echo
+                    log "Operation canceled."
+                    log
                     exit 1
                 fi
             fi
@@ -307,35 +310,35 @@ kiosk(){
             executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
             
             if [ -x "$executable_path" ]; then
-                echo "Found an executable file: $executable_path"
-                echo
+                log "Found an executable file: $executable_path"
+                log
                 # Prompt the user for confirmation
                 read -p "Do you want to use this executable file? (y/n): " choice
                 
                 if [ "$choice" = "y" ]; then
                     possible_path=$executable_path
                 else
-                    echo "Operation canceled."
-                    echo
+                    log "Operation canceled."
+                    log
                     exit 1
                 fi
             else
-                echo "Could not find an executable file in the build folder."
-                echo
+                log "Could not find an executable file in the build folder."
+                log
                 
                 read -p "Do you want to build your Flutter project? (y/n): " choice
                 
                 if [ "$choice" = "y" ]; then
                     flutter build linux --release
                     
-                    echo "Rebuild completed."
-                    echo
+                    log "Rebuild completed."
+                    log
                     executable_path=$(find . -path "./build/linux/*/release/bundle/$current_folder_name" -type f -executable)
                     possible_path=$executable_path
                     
                 else
-                    echo "Operation canceled."
-                    echo
+                    log "Operation canceled."
+                    log
                     exit 1
                 fi
             fi
@@ -347,7 +350,7 @@ kiosk(){
     
     if [ -z "$possible_path" ]; then
         
-        echo "
+        log "
 You should provide path to a excutable file or run this command in a flutter project.
 
 Usage: kiosk <file_path>
@@ -371,131 +374,131 @@ flutter build linux --release
     # Use realpath to get the absolute path
     absolute_path=$(realpath "$app_path")
     
-    echo "Provided File is a valid path: $app_path"
+    log "Provided File is a valid path: $app_path"
     
     # Check if the file is absolute path
     # If not, try to replace the relative path with the absolute path
     if [ "$absolute_path" != "$app_path" ]; then
-        echo "But its not absolute path"
-        echo "Try to replace the relative path with the absolute path"
-        echo
+        log "But its not absolute path"
+        log "Try to replace the relative path with the absolute path"
+        log
         if ! is_executable_file_valid "$absolute_path"; then
-            echo "The absolute path is not valid: $absolute_path"
+            log "The absolute path is not valid: $absolute_path"
             return 1
         fi
         app_path="$absolute_path"
-        echo "New path for the excutable file: $app_path"
+        log "New path for the excutable file: $app_path"
     fi
-    echo
+    log
     
     print_seperator
     
     if ! check_autologin; then
-        echo "Autologin is disabled we have to enable it."
+        log "Autologin is disabled we have to enable it."
         enable_autologin
     else
-        echo "Autologin is already enabled"
+        log "Autologin is already enabled"
     fi
     
     print_banner "Enable kiosk mode"
     
     if ! check_kiosk_packages; then
-        echo "Install kiosk packages"
+        log "Install kiosk packages"
         install_packages "${kiosk_packages[@]}"
     else
-        echo "Linux development dependencies are already installed"
+        log "Linux development dependencies are already installed"
         show_kiosk_packages_state
     fi
-    echo
+    log
     
     # check $kiosk_home is available or not
     if [ ! -d "$kiosk_home" ]; then
-        echo "Creating a kiosk directory in home "
+        log "Creating a kiosk directory in home "
         mkdir -p $kiosk_home
-        echo
+        log
     else
-        echo "The kiosk directory is already available in home."
-        echo
+        log "The kiosk directory is already available in home."
+        log
     fi
     
     
     # check if kiosk.sh file is available or not
     if [ -f "$kiosk_file" ]; then
-        echo "remove current kiosk.sh file and create a new one."
+        log "remove current kiosk.sh file and create a new one."
         sudo -E rm $kiosk_file
-        echo
+        log
     fi
     
-    echo "Creating file kiosk.sh file from template"
+    log "Creating file kiosk.sh file from template"
     sudo -E cp $snapp_home/kiosk.sh $kiosk_home/
-    echo
+    log
     
-    echo "Add Application path to kiosk.sh file"
-    sed -i "s/# placeholder/$(echo "$app_path" | sed 's/\//\\\//g') \&/g" "$kiosk_file"
-    echo
+    log "Add Application path to kiosk.sh file"
+    sed -i "s/# placeholder/$(log "$app_path" | sed 's/\//\\\//g') \&/g" "$kiosk_file"
+    log
     
     print_seperator
     
     # check if the os is using x11 or wayland
     if [ "$(current_display_manager)" == "wayland" ]; then
-        echo "Setup wayland kiosk mode"
-        echo
+        log "Setup wayland kiosk mode"
+        log
         setup_wayland_kiosk "$kiosk_file"
     else
-        echo "Setup X11 kiosk mode"
-        echo
+        log "Setup X11 kiosk mode"
+        log
         setup_x11_kiosk "$kiosk_file"
     fi
     
     print_seperator
     
-    echo
-    echo
-    echo "Kiosk mode has been enabled"
-    echo "Reboot your device to see the changes"
-    echo
-    echo
-    echo
+    log
+    log
+    log_verbose "Kiosk mode has been enabled"
+    log_verbose "Reboot your device to see the changes"
+    log_verbose
+    log_verbose
+    log_verbose
 }
 
 disable_kiosk() {
-    echo
+    log
     print_banner "Disable kiosk mode"
     
     # check if the os is using x11 or wayland
     if [ "$(current_display_manager)" == "wayland" ]; then
-        echo "Disable wayland kiosk mode"
-        echo
+        log "Disable wayland kiosk mode"
+        log
         
         local kiosk_command="snapp_kiosk=bash $kiosk_file && sleep 5"
         
-        echo "kiosk command: $kiosk_command"
+        log "kiosk command: $kiosk_command"
         
         local file="$wayland_user_autostart"
         
         # if kiosk command is in the file just remove it
         if grep -qF "$kiosk_command" "$file"; then
-            echo "remove kiosk command from $file"
+            log "remove kiosk command from $file"
             sed -i "\|$kiosk_command|d" "$file"
-            echo
-            echo "Kiosk mode has been disabled"
-            echo
+            log
+            log "Kiosk mode has been disabled"
+            log
         else
-            echo "Kiosk mode is already disabled"
+            log "Kiosk mode is already disabled"    
         fi
     else
-        echo "Disable X11 kiosk mode"
-        echo
+        log "Disable X11 kiosk mode"
+        log
         if [ -f "$user_autostart" ]; then
-            echo "remove current $user_autostart file"
+            log "remove current $user_autostart file"
             sudo -E rm $user_autostart
-            echo
-            echo "Kiosk mode has been disabled"
-            echo
+            log
+            log "Kiosk mode has been disabled"
+            log
             sleep 3
             sudo -E reboot
         else
-            echo "Kiosk mode is already disabled"
+            log "Kiosk mode is already disabled"
         fi
     fi
     
@@ -534,18 +537,31 @@ enable_autologin() {
     print_banner "Enable Autologin"
     sudo -E raspi-config nonint do_boot_behaviour B4
     
-    echo "Auto Login enabled successfully"
+    log "Auto Login enabled successfully"
 }
 
 disable_autologin() {
     print_banner "Disable Autologin"
     sudo -E raspi-config nonint do_boot_behaviour B3
-    echo "Auto Login disabled successfully"
+    log "Auto Login disabled successfully"
 }
 
 check_autologin() {
     return "$(sudo -E raspi-config nonint get_autologin)"
 }
+
+# Log function for standard logging
+log() {
+    echo "$@"
+}
+
+# Conditional log function that checks if quiet mode is active
+log_verbose() {
+    if [[ $quiet_mode -eq 0 ]]; then
+        log "$@"
+    fi
+}
+
 
 print_banner() {
     local message="${1:-Banner:}"
@@ -573,22 +589,22 @@ print_banner() {
     done
     
     # Print the banner
-    echo "$border"
-    echo "$middle_banner"
-    echo "$border"
+    log "$border"
+    log "$middle_banner"
+    log "$border"
 }
 
 print_seperator(){
     local width=40  # Adjust the width of the banner as needed
     local border_char="*"
     
-    echo
+    log
     # prints $border_char $width times
     for ((i = 0; i <= width; i++)); do
-        echo -n "*"
+        log -n "*"
     done
-    echo
-    echo
+    log
+    log
 }
 
 check_dep_packages() {
@@ -609,9 +625,9 @@ show_dep_packages_state(){
     
     for package in "${dep_packages[@]}"; do
         if ! dpkg -l | grep -q "ii  $package"; then
-            echo "    * ✘ $package is missing"
+            log "    * ✘ $package is missing"
         else
-            echo "    * ✓ $package is installed"
+            log "    * ✓ $package is installed"
         fi
     done
     
@@ -623,19 +639,19 @@ is_executable_file_valid(){
     
     # Check if the provided path exists
     if [ ! -e "$file_path" ]; then
-        echo "File or directory does not exist: $file_path"
+        log "File or directory does not exist: $file_path"
         return 1
     fi
     
     # Check if the provided path is a regular file (not a directory)
     if [ ! -f "$file_path" ]; then
-        echo "Not a regular file: $file_path"
+        log "Not a regular file: $file_path"
         return 1
     fi
     
     # Check if the file is executable
     if [ ! -x "$file_path" ]; then
-        echo "File is not executable: $file_path"
+        log "File is not executable: $file_path"
         return 1
     fi
     
@@ -661,9 +677,9 @@ show_dev_packages_state(){
     local all_installed=0
     for package in "${dev_packages[@]}"; do
         if ! dpkg -l | grep -q "ii  $package"; then
-            echo "    * ✘ $package is missing"
+            log "    * ✘ $package is missing"
         else
-            echo "    * ✓ $package is installed"
+            log "    * ✓ $package is installed"
         fi
     done
     
@@ -689,9 +705,9 @@ show_kiosk_packages_state(){
     
     for package in "${kiosk_packages[@]}"; do
         if ! dpkg -l | grep -q "ii  $package"; then
-            echo "    * ✘ $package is missing"
+            log "    * ✘ $package is missing"
         else
-            echo "    * ✓ $package is installed"
+            log "    * ✓ $package is installed"
         fi
     done
     
@@ -707,11 +723,11 @@ current_display_manager(){
     
     # if the display manager variable contains the word "x11" then the display manager is x11
     if [[ $display_manager == *"x11"* ]]; then
-        echo "x11"
-        elif [[ $display_manager == *"wayland"* ]]; then
-        echo "wayland"
+        log "x11"
+    elif [[ $display_manager == *"wayland"* ]]; then
+        log "wayland"
     else
-        echo "unknown"
+        log "unknown"
     fi
 }
 
@@ -730,7 +746,7 @@ is_flutter_project_fullscreen(){
             return 1
         fi
     else
-        echo "File does not exist: $file_path"
+        log "File does not exist: $file_path"
         return 1
     fi
 }
@@ -739,16 +755,16 @@ is_flutter_project_fullscreen(){
 # It adds the definition of gtk_window_fullscreen to the file
 enable_flutter_project_fullscreen(){
     if [ ! -f "pubspec.yaml" ]; then
-        echo "You can only use this command in a Flutter project."
-        echo "Could not find pubspec.yaml file."
+        log "You can only use this command in a Flutter project."
+        log "Could not find pubspec.yaml file."
         return 1
     fi
     
     if ! is_flutter_project_fullscreen; then
-        echo
-        echo "Enable fullscreen in your Flutter project"
-        echo "Add Fullscreen command to my_application.cc file"
-        echo
+        log
+        log "Enable fullscreen in your Flutter project"
+        log "Add Fullscreen command to my_application.cc file"
+        log
         
         local file_path="./linux/my_application.cc"
         local fullscreen_command="gtk_window_fullscreen(GTK_WINDOW(window));"
@@ -757,12 +773,12 @@ enable_flutter_project_fullscreen(){
             # Use sed to replace specific line with fullscreen command
             sed -i 's/^\(\s*\)gtk_window_set_default_size.*/\1'"$fullscreen_command"'/' "$file_path"
             
-            echo "Fullscreen enabled in $file_path"
+            log "Fullscreen enabled in $file_path"
         else
-            echo "File $file_path not found."
+            log "File $file_path not found."
         fi
     else
-        echo "Fullscreen is already enabled in your Flutter project"
+        log "Fullscreen is already enabled in your Flutter project"
     fi
     
 }
@@ -776,17 +792,20 @@ setup_wayland_kiosk(){
     if ! grep -q "\[wm-actions\]" "$file"; then
         # If it doesn't exist, add the section and the desired lines
         echo "[wm-actions]" >> "$file"
+
         echo "toggle_fullscreen = <alt> KEY_F11" >> "$file"
+
         echo >> "$file"  # Adding a blank line after the new entry
-        echo "Added [wm-actions] section and toggle_fullscreen entry to $file"
+
+        log "Added [wm-actions] section and toggle_fullscreen entry to $file"
     else
         # If the section already exists, check if the line is present
         if ! grep -q "\[wm-actions\]" "$file" || ! grep -q "toggle_fullscreen = <alt> KEY_F11" "$file"; then
             # If the line is not present or section is misplaced, add it to the existing [wm-actions] section
             sed -i '/^\[wm-actions\]/a toggle_fullscreen = <alt> KEY_F11\n' "$file"
-            echo "Added toggle_fullscreen entry to the existing [wm-actions] section in $file"
+            log "Added toggle_fullscreen entry to the existing [wm-actions] section in $file"
         else
-            echo "toggle_fullscreen entry already exists in [wm-actions] section in $file"
+            log "toggle_fullscreen entry already exists in [wm-actions] section in $file"
         fi
     fi
     
@@ -795,7 +814,7 @@ setup_wayland_kiosk(){
     # Check if the line exists in the file
     # and if it does, then do not add it again
     if grep -qF "[autostart]" "$file" && grep -qF "$kiosk_command" "$file"; then
-        echo "kiosk mode is already available in $file"
+        log "kiosk mode is already available in $file"
         return 0
     fi
     
@@ -805,15 +824,16 @@ setup_wayland_kiosk(){
         echo "[autostart]" >> "$file"
         echo "snapp_kiosk=bash $kiosk_file && sleep 5" >> "$file"
         echo >> "$file"  # Adding a blank line after the new entry
-        echo "Added [autostart] section and snapp_kiosk entry to $file"
+
+        log "Added [autostart] section and snapp_kiosk entry to $file"
     else
         # If the section already exists, check if the line is present
         if ! grep -q "\[autostart\]" "$file" || ! grep -q "snapp_kiosk=bash $kiosk_file && sleep 5" "$file"; then
             # If the line is not present or section is misplaced, add it to the existing [autostart] section
             sed -i "/^\[autostart\]/a snapp_kiosk=bash $kiosk_file && sleep 5\n" "$file"
-            echo "Added snapp_kiosk entry to the existing [autostart] section in $file"
+            log "Added snapp_kiosk entry to the existing [autostart] section in $file"
         else
-            echo "snapp_kiosk entry already exists in [autostart] section in $file"
+            log "snapp_kiosk entry already exists in [autostart] section in $file"
         fi
     fi
 }
@@ -822,24 +842,25 @@ setup_x11_kiosk(){
     local kiosk_file="$1"
     
     if [ ! -d "$user_autostart_dir" ]; then
-        echo "Creating directory $user_autostart_dir"
+        log "Creating directory $user_autostart_dir"
         sudo -E mkdir -p $user_autostart_dir
-        echo
+        log
     fi
     
     if [ -f "$user_autostart" ]; then
-        echo "remove current user LXDE-pi/autostart file."
+        log "remove current user LXDE-pi/autostart file."
         sudo -E rm $user_autostart
-        echo
+        log
     fi
     
-    echo "Copy default autostart file to user autostart file"
+    log "Copy default autostart file to user autostart file"
     sudo -E cp $default_autostart $user_autostart_dir
     
-    echo "Add following lines to the to user autostart file"
-    echo "@bash $kiosk_file" | sudo tee -a $user_autostart
-    echo "@sleep 5" | sudo tee -a $user_autostart
-    echo "@xdotool key alt+F11" | sudo tee -a $user_autostart
+    log "Add following lines to the to user autostart file"
+    log "@bash $kiosk_file" | sudo tee -a $user_autostart
+    log "@sleep 5" | sudo tee -a $user_autostart
+    log "@xdotool key alt+F11" | sudo tee -a $user_autostart
+
 }
 
 
@@ -852,12 +873,12 @@ install_packages() {
     
     # Check if the argument is an array
     if [[ ! "$(declare -p packages 2>/dev/null)" =~ "declare -a" ]]; then
-        echo "Error: Argument is not an array."
+        log "Error: Argument is not an array."
         return 1
     fi
     
     if [ ${#packages[@]} -eq 0 ]; then
-        echo "No packages provided."
+        log "No packages provided."
         return 0
     fi
     
@@ -889,17 +910,19 @@ check_flutter_in_path(){
 add_flutter_to_path(){
     if [ "$user_home" != "$HOME" ]; then
         if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$user_home/.bashrc"; then
-            echo "we have flutter as env in ~/.bashrc."
+            log "we have flutter as env in ~/.bashrc."
         else
-            echo "adding flutter to PATH as env in $user_home/.bashrc."
+            log "adding flutter to PATH as env in $user_home/.bashrc."
+
             echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $user_home/.bashrc
             source $user_home/.bashrc
         fi
     else
         if grep -q "export PATH=\"\$PATH:$flutter_folder/bin\"" "$HOME/.bashrc"; then
-            echo "we have flutter as env in $HOME/.bashrc."
+            log "we have flutter as env in $HOME/.bashrc."
         else
-            echo "adding flutter to PATH as env in ~/.bashrc."
+            log "adding flutter to PATH as env in ~/.bashrc."
+
             echo "export PATH=\"\$PATH:$flutter_folder/bin\"" >> $HOME/.bashrc
             source $HOME/.bashrc
         fi
@@ -917,5 +940,22 @@ check_flutter_channel() {
         return 1
     fi
 }
+
+# Pre-process and remove the -q or --quiet flag if present, setting quiet mode accordingly
+for arg in "$@"; do
+    if [[ "$arg" == "-q" || "$arg" == "--quiet" ]]; then
+        quiet_mode=1  # Set quiet mode
+        # Remove the -q or --quiet argument from the list
+        # This approach handles both -q and --quiet by shifting them out of the argument list
+        ARGS=()
+        for item in "$@"; do
+            if [[ "$item" != "-q" && "$item" != "--quiet" ]]; then
+                ARGS+=("$item")
+            fi
+        done
+        set -- "${ARGS[@]}"
+        break
+    fi
+done
 
 main "$@"
