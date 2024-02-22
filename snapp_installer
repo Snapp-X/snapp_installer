@@ -45,9 +45,9 @@ flutter_version=""
 main() {
     # Check the number of command-line arguments
     if [ $# -eq 0 ]; then
-        log
-        log "You need to specify a Command:"
-        log
+        log_error
+        log_error "You need to specify a Command:"
+        log_error
         help
         exit 1
     fi
@@ -121,8 +121,6 @@ doctor() {
     # Check Linux development packages (clang, cmake, ninja-build, ...)
     log " $(check_dev_packages && log '✓' || log '✘') | Linux development packages | clang cmake ninja-build ..."
     show_dev_packages_state
-    # Check Flutter channel
-    log " $(check_flutter_channel && log '✓' || log '✘') | Check flutter channel. should be $flutter_channel."
 
     log
     log "Kiosk Mode: $(current_display_manager)"
@@ -156,7 +154,7 @@ install() {
 * update the path to make the flutter command excutable
 * Check and show the flutter path
 * add dependencies for developing on linux
-* change flutter channel to $flutter_channel
+* check the flutter channel
 * run flutter doctor
 * run flutter precache command for linux
     "
@@ -164,10 +162,11 @@ install() {
     log
 
     if [ -n "$flutter_version" ]; then
-        log "Flutter version specified: $flutter_version"
+        log "Version option specified."
         log "Installing Flutter version: $flutter_version"
     else
-        log "Installing the latest stable version of Flutter"
+        log "Version option not specified."
+        log "Installing the latest version of Flutter on the $flutter_channel channel."
     fi
     log
     log
@@ -185,14 +184,25 @@ install() {
 
     print_banner "Clone Flutter"
     if ! check_flutter_folder; then
-        log "Clone the flutter from Github: $flutter_repo"
-        git clone $flutter_repo -b $flutter_channel
+        # Use flutter_version if set; otherwise, use flutter_channel
+        git_branch=${flutter_version:-$flutter_channel}
+
+        log "Clone the $git_branch branch of the Flutter repository from GitHub"
+        log
+
+        # The git clone command using conditional logic for branch name
+        if git clone "$flutter_repo" -b "$git_branch"; then
+            log "Flutter cloned successfully."
+        else
+            log_error "Error cloning Flutter."
+            exit 1
+        fi
 
         if [ ! -d "$flutter_path" ]; then
             mkdir -p "$flutter_path"
         fi
 
-        sudo -E mv flutter $flutter_path
+        sudo -E mv flutter "$flutter_path"
         log "Flutter moved to the $flutter_path directory"
     else
         log "Flutter folder is already available in $flutter_folder"
@@ -229,12 +239,9 @@ install() {
     log
 
     print_banner "Check Flutter Channel"
-    log "change Flutter channel to $flutter_channel"
-    if ! check_flutter_channel; then
-        flutter channel $flutter_channel
-    else
-        log "Flutter channel is already on $flutter_channel"
-    fi
+    log "Checking Flutter channel"
+    log
+    flutter channel
     log
 
     print_banner "Flutter Doctor"
@@ -250,6 +257,7 @@ install() {
     log
     print_banner "Final Checks:"
     doctor
+    log
 
     print_seperator
 
@@ -345,8 +353,8 @@ kiosk() {
                 if [ "$choice" = "y" ]; then
                     possible_path=$executable_path
                 else
-                    log "Operation canceled."
-                    log
+                    log_error "Operation canceled."
+                    log_error
                     exit 1
                 fi
             else
@@ -364,8 +372,8 @@ kiosk() {
                     possible_path=$executable_path
 
                 else
-                    log "Operation canceled."
-                    log
+                    log_error "Operation canceled."
+                    log_error
                     exit 1
                 fi
             fi
@@ -578,6 +586,11 @@ check_autologin() {
 # Log function for standard logging
 log() {
     echo "$@"
+}
+
+# Log function for error logging
+log_error() {
+    echo "$@" >&2
 }
 
 # Conditional log function that checks if quiet mode is active
@@ -971,12 +984,12 @@ validate_version() {
     if [[ $version =~ $regex ]]; then
         return 0
     else
-        log
-        log "Provided version is invalid: $version"
-        log "Version should be in the format: major.minor.patch"
-        log
-        log "Example: 3.19.0"
-        log
+        log_error
+        log_error "Provided version is invalid: $version"
+        log_error "Version should be in the format: major.minor.patch"
+        log_error
+        log_error "Example: 3.19.0"
+        log_error
         # Version is invalid, return 1 (failure)
         return 1
     fi
@@ -1004,11 +1017,11 @@ parse_arguments() {
                     exit 1
                 fi
             else
-                log
-                log "Argument is missing: -v, --version requires a value."
-                log
-                log "Example: $script_name install -v 3.19.0"
-                log
+                log_error
+                log_error "Argument is missing: -v, --version requires a value."
+                log_error
+                log_error "Example: $script_name install -v 3.19.0"
+                log_error
                 exit 1
             fi
             shift # Remove the version flag
