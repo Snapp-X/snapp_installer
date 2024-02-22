@@ -276,7 +276,47 @@ install() {
 }
 
 uninstall() {
-    print_banner "Uninstalling Flutter is not implemented yet"
+    print_banner "Uninstallation Summary"
+    log
+    log "
+* Remove the Flutter directory: $flutter_folder
+* Update the PATH to remove the Flutter executable
+    "
+    log
+
+    set -e
+
+    print_banner "Remove Flutter Directory"
+    if [ -d "$flutter_folder" ]; then
+        log "Removing Flutter from $flutter_folder"
+        sudo rm -rf "$flutter_folder"
+        log "Flutter has been removed."
+    else
+        log "Flutter directory not found. Assuming Flutter is not installed."
+    fi
+    log
+
+    log "Updating PATH to remove Flutter"
+    local path_pattern="export PATH=\"\$PATH:$flutter_folder/bin\""
+
+    # Use sed to delete the line matching the exact pattern from .bashrc
+    # Note: Using "|" as delimiter in sed to avoid escaping issues with "/"
+    if grep -qF -- "$path_pattern" "$user_home/.bashrc"; then
+        sed -i "\|$path_pattern|d" "$user_home/.bashrc"
+        log "Flutter PATH entry removed from .bashrc."
+    else
+        log "No specific Flutter PATH entry found in .bashrc."
+    fi
+    log
+
+    log "Flutter has been uninstalled."
+    log
+
+    log_verbose "Please restart your terminal or source your .bashrc file to refresh your environment."
+    log_verbose "source $user_home/.bashrc"
+    log_verbose
+
+    print_seperator
 }
 
 kiosk() {
