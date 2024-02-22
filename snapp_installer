@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Set a global variable for the script's name
+script_name=$(basename "$0")
+
 user_home=$(eval echo ~${SUDO_USER})
 
 flutter_repo="https://github.com/flutter/flutter"
@@ -29,7 +32,15 @@ dev_packages=("clang" "cmake" "ninja-build" "pkg-config" "libgtk-3-dev" "liblzma
 # List of dependency packages for the kiosk mode
 kiosk_packages=("x11-xserver-utils" "xdotool")
 
+# Options:
+
+# -q, --quiet : Run in quiet mode
 quiet_mode=0 # Default to verbose mode
+
+# -v, --version : Specify the version of Flutter to install
+# Example:
+# snapp_installer install -v 3.19.0
+flutter_version=""
 
 main() {
     # Check the number of command-line arguments
@@ -68,20 +79,30 @@ main() {
 }
 
 help() {
-    log
-    log "Usage: $0 <command>"
-    log
-    log "Options:"
-    log "  help               : Show this help message"
-    log "  doctor             : Check all the steps"
-    log "  install            : Install Flutter "
-    log "  uninstall          : Uninstall Flutter "
+    log "Usage: $script_name [command] [options]"
+    log ""
+    log "Commands:"
+    log "  help               : Display this help message."
+    log "  doctor             : Check your environment for Flutter dependencies."
+    log "  install            : Install Flutter. Optionally specify a version with -v."
+    log "  uninstall          : Uninstall Flutter."
     log "  kiosk              : Run the app bundle in kiosk mode"
     log "  disable_kiosk      : Disable the kiosk mode"
     log "  autologin          : Enable the auto login"
     log "  disable_autologin  : Disable the auto login"
-    log
-    exit 1
+    # Add other commands here
+    log ""
+    log "Options:"
+    log "  -v, --version [version]  Specify the Flutter version to install (e.g., -v 3.19.0)."
+    log "                           Use with 'install' command."
+    log "  -q, --quiet              Enable quiet mode, minimizing output."
+    log ""
+    log "Examples:"
+    log "  $script_name install -v 3.19.0     Install Flutter version 3.19.0."
+    log "  $script_name uninstall             Uninstall Flutter."
+    log "  $script_name doctor                Run the Flutter doctor command."
+    log ""
+    log ""
 }
 
 doctor() {
@@ -139,6 +160,16 @@ install() {
 * run flutter doctor
 * run flutter precache command for linux
     "
+    log
+    log
+
+    if [ -n "$flutter_version" ]; then
+        log "Flutter version specified: $flutter_version"
+        log "Installing Flutter version: $flutter_version"
+    else
+        log "Installing the latest stable version of Flutter"
+    fi
+    log
     log
 
     set -e
@@ -932,21 +963,66 @@ check_flutter_channel() {
     fi
 }
 
-# Pre-process and remove the -q or --quiet flag if present, setting quiet mode accordingly
-for arg in "$@"; do
-    if [[ "$arg" == "-q" || "$arg" == "--quiet" ]]; then
-        quiet_mode=1 # Set quiet mode
-        # Remove the -q or --quiet argument from the list
-        # This approach handles both -q and --quiet by shifting them out of the argument list
-        ARGS=()
-        for item in "$@"; do
-            if [[ "$item" != "-q" && "$item" != "--quiet" ]]; then
-                ARGS+=("$item")
-            fi
-        done
-        set -- "${ARGS[@]}"
-        break
+# Function to validate version format
+validate_version() {
+    local version="$1"
+    local regex='^[0-9]+\.[0-9]+\.[0-9]+$' # Pattern for major.minor.patch
+
+    if [[ $version =~ $regex ]]; then
+        return 0
+    else
+        log
+        log "Provided version is invalid: $version"
+        log "Version should be in the format: major.minor.patch"
+        log
+        log "Example: 3.19.0"
+        log
+        # Version is invalid, return 1 (failure)
+        return 1
     fi
-done
+}
+
+# Function to parse command-line arguments
+# It sets the global variables based on the provided arguments
+parse_arguments() {
+    quiet_mode=0       # Reset quiet mode
+    flutter_version="" # Reset version
+
+    ARGS=() # Initialize an array to hold the processed arguments
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+        -q | --quiet)
+            quiet_mode=1
+            shift # Remove this argument
+            ;;
+        -v | --version)
+            if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                if validate_version "$2"; then
+                    flutter_version="$2"
+                    shift # Remove the version value
+                else
+                    exit 1
+                fi
+            else
+                log
+                log "Argument is missing: -v, --version requires a value."
+                log
+                log "Example: $script_name install -v 3.19.0"
+                log
+                exit 1
+            fi
+            shift # Remove the version flag
+            ;;
+        *) # Preserve other arguments
+            ARGS+=("$1")
+            shift
+            ;;
+        esac
+    done
+    set -- "${ARGS[@]}" # Set the remaining arguments back
+}
+
+# Call parse_arguments at the start, replacing the pre-existing pre-process section
+parse_arguments "$@"
 
 main "$@"
