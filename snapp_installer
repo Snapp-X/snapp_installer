@@ -42,6 +42,11 @@ quiet_mode=0 # Default to verbose mode
 # snapp_installer install -v 3.19.0
 flutter_version=""
 
+# -f, --force : Force the installation of Flutter
+# Example:
+# snapp_installer install -f
+force_install=0
+
 main() {
     # Check the number of command-line arguments
     if [ $# -eq 0 ]; then
@@ -96,9 +101,11 @@ help() {
     log "  -v, --version [version]  Specify the Flutter version to install (e.g., -v 3.19.0)."
     log "                           Use with 'install' command."
     log "  -q, --quiet              Enable quiet mode, minimizing output."
+    log "  -f, --force              Force the installation of Flutter."
     log ""
     log "Examples:"
     log "  $script_name install -v 3.19.0     Install Flutter version 3.19.0."
+    log "  $script_name install -v 3.19.0 -f  Force the installation of Flutter version 3.19.0."
     log "  $script_name uninstall             Uninstall Flutter."
     log "  $script_name doctor                Run the Flutter doctor command."
     log ""
@@ -116,8 +123,8 @@ doctor() {
     # Check Flutter folder
     log " $(check_flutter_folder && log '✓' || log '✘') | Flutter folder is located in $flutter_folder."
     # Check Flutter command
+    log " $(check_flutter_installation && log '✓' || log '✘') | Flutter command is available in the PATH."
     log " $(check_flutter_in_path && log '✓' || log '✘') | Flutter command is defined in .bashrc file."
-    log " $(check_flutter_installed && log '✓' || log '✘') | Flutter command is available in the PATH."
     # Check Linux development packages (clang, cmake, ninja-build, ...)
     log " $(check_dev_packages && log '✓' || log '✘') | Linux development packages | clang cmake ninja-build ..."
     show_dev_packages_state
@@ -140,11 +147,32 @@ doctor() {
         log
         log "Flutter Project:"
         log
-        log " $(is_flutter_project_fullscreen && echo '✓' || echo '✘') | Fullscreen is enabled in your Flutter project"
+        log " $(is_flutter_project_fullscreen && log '✓' || log '✘') | Fullscreen is enabled in your Flutter project"
     fi
 }
 
 install() {
+
+    if check_flutter_is_available && [ $force_install -eq 0 ]; then
+        log
+        log "✓ | Flutter is already installed"
+        log
+        log "You can find it at: $(which flutter)"
+        log
+        log
+        log "If you want to force the installation, run install command with -f | --force option"
+        log
+        return 0
+    fi
+
+    if check_flutter_is_available && [ $force_install -eq 1 ]; then
+        log
+        log "Force installation is enabled"
+        log "Remove the current Flutter installation"
+        log
+        uninstall
+    fi
+
     print_banner "Installation Summary"
     log
     log "
@@ -216,7 +244,7 @@ install() {
         export PATH="$PATH:$flutter_folder/bin"
     fi
 
-    if ! check_flutter_installed; then
+    if ! check_flutter_installation; then
         log "Add Flutter to PATH for this session"
         eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
@@ -683,6 +711,35 @@ print_seperator() {
     log
 }
 
+# Function to check if Flutter is installed
+check_flutter_installation() {
+    # 1. Check for global 'flutter' command availability
+    if which flutter &> /dev/null; then
+        return 0 # Return true immediately if flutter command is found
+    else
+        log "Flutter command not found globally. Checking common directories..."
+    fi
+
+    # 2. Search for Flutter in common directories
+    local search_dirs=("$HOME" "/usr/local")
+
+    for dir in "${search_dirs[@]}"; do
+        # Note: Using -print -quit to stop at the first find to improve efficiency
+        local flutter_path
+
+
+        flutter_path=$(find "$dir" -type f -name "flutter" -path "*/flutter/bin/*" -print -quit 2>/dev/null)
+        
+        if [[ -n $flutter_path ]]; then
+            log "Flutter installation found at: $flutter_path"
+            return 0
+        fi
+    done
+
+    log "No Flutter installations found."
+    return 1 # Return false if flutter is not found anywhere
+}
+
 check_dep_packages() {
     local all_installed=0 # Success (true)
 
@@ -969,7 +1026,7 @@ check_flutter_folder() {
     return $?
 }
 
-check_flutter_installed() {
+check_flutter_is_available() {
     which flutter >/dev/null 2>&1
     return $?
 }
@@ -1040,6 +1097,7 @@ validate_version() {
 parse_arguments() {
     quiet_mode=0       # Reset quiet mode
     flutter_version="" # Reset version
+    force_install=0    # Reset force install flag
 
     ARGS=() # Initialize an array to hold the processed arguments
     while [[ "$#" -gt 0 ]]; do
@@ -1065,6 +1123,10 @@ parse_arguments() {
                 exit 1
             fi
             shift # Remove the version flag
+            ;;
+        -f|--force)
+            force_install=1  # Set force install flag
+            shift # Remove this argument
             ;;
         *) # Preserve other arguments
             ARGS+=("$1")
