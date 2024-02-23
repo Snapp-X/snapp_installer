@@ -153,7 +153,7 @@ doctor() {
 
 install() {
 
-    if check_flutter_is_available && [ $force_install -eq 0 ]; then
+    if check_flutter_installation && [ $force_install -eq 0 ]; then
         log
         log "✓ | Flutter is already installed"
         log
@@ -165,7 +165,7 @@ install() {
         return 0
     fi
 
-    if check_flutter_is_available && [ $force_install -eq 1 ]; then
+    if check_flutter_installation && [ $force_install -eq 1 ]; then
         log
         log "Force installation is enabled"
         log "Remove the current Flutter installation"
@@ -244,7 +244,7 @@ install() {
         export PATH="$PATH:$flutter_folder/bin"
     fi
 
-    if ! check_flutter_installation; then
+    if ! check_flutter_is_available; then
         log "Add Flutter to PATH for this session"
         eval "$(cat $user_home/.bashrc | tail -n +10)"
         export PATH="$PATH:$flutter_folder/bin"
@@ -714,10 +714,10 @@ print_seperator() {
 # Function to check if Flutter is installed
 check_flutter_installation() {
     # 1. Check for global 'flutter' command availability
-    if which flutter &> /dev/null; then
+    if which flutter &>/dev/null; then
         return 0 # Return true immediately if flutter command is found
     else
-        log "Flutter command not found globally. Checking common directories..."
+        log_verbose "Flutter command not found globally. Checking common directories..."
     fi
 
     # 2. Search for Flutter in common directories
@@ -727,16 +727,15 @@ check_flutter_installation() {
         # Note: Using -print -quit to stop at the first find to improve efficiency
         local flutter_path
 
-
         flutter_path=$(find "$dir" -type f -name "flutter" -path "*/flutter/bin/*" -print -quit 2>/dev/null)
-        
+
         if [[ -n $flutter_path ]]; then
-            log "Flutter installation found at: $flutter_path"
+            log_verbose "Flutter installation found at: $flutter_path"
             return 0
         fi
     done
 
-    log "No Flutter installations found."
+    log_verbose "No Flutter installations found."
     return 1 # Return false if flutter is not found anywhere
 }
 
@@ -1124,9 +1123,9 @@ parse_arguments() {
             fi
             shift # Remove the version flag
             ;;
-        -f|--force)
-            force_install=1  # Set force install flag
-            shift # Remove this argument
+        -f | --force)
+            force_install=1 # Set force install flag
+            shift           # Remove this argument
             ;;
         *) # Preserve other arguments
             ARGS+=("$1")
