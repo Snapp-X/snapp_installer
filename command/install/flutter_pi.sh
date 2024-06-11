@@ -34,7 +34,7 @@ function print_message() {
 }
 
 # Install flutter-pi method
-install_flutter_pi() {
+function install_flutter_pi() {
 
     # Update system and install required packages
     print_message "Updating system and installing required packages..."
@@ -88,3 +88,5 @@ install_flutter_pi() {
 
     print_message "flutter-pi installation and setup is complete!"
 }
+
+install_flutter_pi
