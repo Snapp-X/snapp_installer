@@ -8,7 +8,6 @@ flutter_pi_repo="https://github.com/ardera/flutter-pi"
 flutter_pi_installation_path="$user_home/sdk/flutter-pi"
 
 INSTALL_GSTREAMER=false
-CONFIGURE_RPI=false
 
 # Parse command-line arguments
 for arg in "$@"; do
@@ -16,10 +15,6 @@ for arg in "$@"; do
     --gstreamer)
         INSTALL_GSTREAMER=true
         shift # Remove --gstreamer from processing
-        ;;
-    --rpi-config)
-        CONFIGURE_RPI=true
-        shift # Remove --rpi-config from processing
         ;;
     *)
         echo "Unknown option: $arg"
@@ -53,11 +48,13 @@ function install_flutter_pi() {
 
     # Clone flutter-pi repository
     print_message "Cloning flutter-pi repository..."
-    if [ ! -d "$flutter_pi_installation_path" ]; then
-        git clone --recursive "$flutter_pi_repo" "$flutter_pi_installation_path"
-    else
-        print_message "flutter-pi directory already exists at $flutter_pi_installation_path. Skipping cloning."
+    if [ -d "$flutter_pi_installation_path" ]; then
+        print_message "flutter-pi directory already exists at $flutter_pi_installation_path. Deleting and cloning again."
+        rm -rf "$flutter_pi_installation_path"
     fi
+
+    git clone --recursive "$flutter_pi_repo" "$flutter_pi_installation_path"
+
     cd "$flutter_pi_installation_path"
 
     # Compile flutter-pi
@@ -74,19 +71,22 @@ function install_flutter_pi() {
     cd ../..
 
     # Configure Raspberry Pi settings if requested
-    if $CONFIGURE_RPI; then
-        print_message "Configuring Raspberry Pi settings..."
-        sudo raspi-config
+    print_message "Configuring Raspberry to boot into console mode..."
+    sudo raspi-config nonint do_boot_behaviour B2
 
-        # Give 'pi' permission to use 3D acceleration
-        print_message "Giving the 'pi' user permission to use 3D acceleration (potential security hazard)..."
-        sudo usermod -a -G render pi
+    # Give 'pi' permission to use 3D acceleration
+    print_message "Giving the 'pi' user permission to use 3D acceleration (potential security hazard)..."
+    sudo usermod -a -G render pi
 
-        print_message "Rebooting the Raspberry Pi to apply changes..."
-        sudo reboot
-    fi
-
+    # Print success message
     print_message "flutter-pi installation and setup is complete!"
+
+    # Schedule reboot in the background and exit script successfully
+    print_message "The system will reboot in 10 seconds to apply changes."
+    sudo shutdown -r +0.1 &
+
+    exit 0
+
 }
 
 install_flutter_pi
