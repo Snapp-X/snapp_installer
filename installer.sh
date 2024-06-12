@@ -6,19 +6,22 @@
 # Exit when any command fails
 set -e
 
+# Define user and snapp installation paths
 user_home=$(eval echo ~${SUDO_USER})
 snapp_home="$user_home/snapp_installer/bin"
 temp_dir=$(mktemp -d)
 
+# Function to clean up the temporary directory
 cleanup() {
     echo "Cleaning up temporary directory: $temp_dir"
     rm -rf "$temp_dir"
 }
 
+# Set up cleanup trap
 trap cleanup EXIT
 
 main() {
-    # Create a folder in user home /snapp_installer/bin
+    # Create the snapp installation directory if it does not exist
     if [ ! -d "$snapp_home" ]; then
         echo "Creating directory $snapp_home."
         echo
@@ -28,26 +31,16 @@ main() {
         echo
     fi
 
-    cd "$temp_dir"
-
     # Clone the repository into the temporary directory
     echo "Cloning the repository..."
-    git clone --depth 1 https://github.com/Snapp-Embedded/snapp_installer.git
-
-    cd snapp_installer
-
-    # Enable sparse checkout
-    git sparse-checkout init --cone
-
-    # Specify the folders/files to checkout, using `--` to indicate files after directories
-    git sparse-checkout set command -- snapp_installer kiosk.sh config.ini
+    git clone --depth 1 https://github.com/Snapp-Embedded/snapp_installer.git "$temp_dir/snapp_installer"
 
     # Copy the necessary files and folders to the snapp_home directory
     echo "Copying files and folders to $snapp_home..."
-    cp -r command "$snapp_home/"
-    cp snapp_installer "$snapp_home/"
-    cp kiosk.sh "$snapp_home/"
-    cp config.ini "$snapp_home/"
+    cp -r "$temp_dir/snapp_installer/command" "$snapp_home/"
+    cp "$temp_dir/snapp_installer/snapp_installer" "$snapp_home/"
+    cp "$temp_dir/snapp_installer/kiosk.sh" "$snapp_home/"
+    cp "$temp_dir/snapp_installer/config.ini" "$snapp_home/"
 
     echo "Adding necessary file permissions to downloaded files"
     echo
