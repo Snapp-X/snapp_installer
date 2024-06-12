@@ -64,6 +64,8 @@ main() {
         doctor
     elif [ "$1" == "install" ]; then
         install
+    elif [ "$1" == "install_flutter_pi" ]; then
+        install_flutter_pi
     elif [ "$1" == "uninstall" ]; then
         uninstall
     elif [ "$1" == "kiosk" ]; then
@@ -90,6 +92,7 @@ help() {
     log "  help               : Display this help message."
     log "  doctor             : Check your environment for Flutter dependencies."
     log "  install            : Install Flutter. Optionally specify a version with -v."
+    log "  install_flutter_pi : Install flutter-pi."
     log "  uninstall          : Uninstall Flutter."
     log "  kiosk              : Run the app bundle in kiosk mode"
     log "  disable_kiosk      : Disable the kiosk mode"
@@ -300,6 +303,31 @@ install() {
     log_verbose "source ~/.bashrc"
     log_verbose
     log_verbose
+
+}
+
+install_flutter_pi() {
+    print_banner "flutter-pi Installation Summary"
+    log
+    log "
+* Get Linux dependencies to be able to run the flutter: curl, git ,...
+* Get required dependencies for installing flutter-pi: cmake libgl1-mesa-dev libgles2-mesa-dev
+* Clone the flutter-pi from Github:
+* Build the flutter-pi
+* Check and show the flutter-pi path
+* Update raspi-config to autologin from cli
+* reboot the device
+    "
+    log
+    log
+
+    # The flutter-pi installer script is located in command/install/flutter_pi.sh file
+    # we will run the script to install flutter-pi
+
+    log "Run the flutter-pi installer script"
+
+    # Run the flutter-pi installer script
+    bash $snapp_home/command/install/flutter_pi.sh
 
 }
 
