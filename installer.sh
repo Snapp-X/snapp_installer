@@ -39,8 +39,8 @@ main() {
     # Enable sparse checkout
     git sparse-checkout init --cone
 
-    # Specify the folders/files to checkout
-    git sparse-checkout set command snapp_installer kiosk.sh config.ini
+    # Specify the folders/files to checkout, using `--` to indicate files after directories
+    git sparse-checkout set command -- snapp_installer kiosk.sh config.ini
 
     # Copy the necessary files and folders to the snapp_home directory
     echo "Copying files and folders to $snapp_home..."
