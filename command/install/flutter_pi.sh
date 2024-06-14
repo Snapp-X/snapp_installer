@@ -80,12 +80,6 @@ function install_flutter_pi() {
 
     # Print success message
     print_message "flutter-pi installation and setup is complete!"
-
-    # Schedule reboot in the background and exit script successfully
-    sudo bash -c "sleep 10; sudo reboot" &
-    print_message "The system will reboot in 10 seconds to apply changes."
-
-    exit 0
 }
 
 install_flutter_pi
