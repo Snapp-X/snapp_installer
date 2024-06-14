@@ -81,8 +81,7 @@ function install_flutter_pi() {
     # Print success message
     print_message "flutter-pi installation and setup is complete!"
 
-    sudo shutdown -r +1 &
-    print_message "The system will reboot in 1 minute to apply changes."
+    print_message "Reboot the system to apply changes."
 }
 
 install_flutter_pi
