@@ -83,7 +83,7 @@ function install_flutter_pi() {
 
     # Schedule reboot in the background and exit script successfully
     print_message "The system will reboot in 10 seconds to apply changes."
-    (sleep 5 && sudo reboot) &
+    (sleep 10 && sudo reboot) &
 
     exit 0
 }
