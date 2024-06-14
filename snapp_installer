@@ -328,12 +328,6 @@ install_flutter_pi() {
 
     # Run the flutter-pi installer script
     bash $snapp_home/command/install/flutter_pi.sh
-
-    log "Flutter-pi has been installed successfully."
-    log
-    log "Please reboot your device to see the changes."
-    log
-    log
 }
 
 uninstall() {
