@@ -33,7 +33,7 @@ main() {
 
     # Clone the repository into the temporary directory
     echo "Cloning the repository..."
-    git clone --depth 1 https://github.com/Snapp-Embedded/snapp_installer.git "$temp_dir/snapp_installer"
+    git clone --depth 1 https://github.com/Snapp-X/snapp_installer.git "$temp_dir/snapp_installer"
 
     # Copy the necessary files and folders to the snapp_home directory
     echo "Copying files and folders to $snapp_home..."
