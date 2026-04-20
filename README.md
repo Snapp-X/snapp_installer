@@ -16,6 +16,7 @@ Before running the installer script, ensure you have the following prerequisites
 - **Raspberry Pi 4 with Raspberry pi OS 64-bit** (Raspbian)
 - **Bash shell** (version 4.0 or higher) - by default is available
 - **Curl** - by default is available
+- **Git**
 
 ## Kiosk Mode Result
 
